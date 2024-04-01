@@ -5,7 +5,10 @@ const Navbar = () => {
   return (
     <nav className="flex justify-between items-center py-4 px-8 bg-gray-800 text-white">
       <div>
+        <Link href="/">
         <span>HTSV</span>
+        </Link>
+        
       </div>
       <div className="flex items-center">
         <Link legacyBehavior href="/upload">
