@@ -19,3 +19,6 @@ To get started with Video Admin, follow these steps:
 
 Ensure you have Node.js and npm installed on your machine before proceeding with the installation steps.
 
+Please find the link to the backend repository @https://github.com/farmhutsoftwareteam/videoserver
+
+
