@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 
-const VideoEditForm = ({ video, onSave, onCancel }) => {
+const VideoEditForm = ({ video ={}, onSave, onCancel }) => {
   const [title, setTitle] = useState(video.title);
   const [description, setDescription] = useState(video.description || "");
-  const [tags, setTags] = useState(video.tags.join(", "));
+  const [tags, setTags] = useState(video.tags ? video.tags.join(", ") : "");
   const [category, setCategory] = useState(video.category || "");
-  const [monetization, setMonetization] = useState(video.monetization.type !== 'free');
+  const [monetization, setMonetization] = useState(video.monetization ? video.monetization.type !== 'free' : false);
   const [isLoading, setIsLoading] = useState(false); // Loading state
 
+console.log("VideoEditForm", video);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

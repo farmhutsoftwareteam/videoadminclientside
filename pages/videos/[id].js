@@ -67,7 +67,7 @@ const handleSave = async (editedVideo) => {
       <div className="container mx-auto p-4 flex flex-col lg:flex-row">
         {isEditMode ? (
           // Render the VideoEditForm component when in edit mode
-          <VideoEditForm video={video.video} onSave={handleSave} onCancel={() => setIsEditMode(false)} />
+          <VideoEditForm video={video} onSave={handleSave} onCancel={() => setIsEditMode(false)} />
         ) : (
           // Display video details and an "Edit" button when not in edit mode
           <>
