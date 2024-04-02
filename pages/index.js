@@ -14,7 +14,8 @@ const Index = () => {
     setError("");
     console.log('------starting to log in --------', userName);
     try {
-      const response = await fetch('https://hstvvideoapp.azurewebsites.net/api/users/login', {
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL_SERVER}api/users/login`; // Use the environment variable
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -12,7 +12,7 @@ const Videos = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [videos, setVideos] = useState([]);
-  const apiUrl = 'https://hstvvideoapp.azurewebsites.net/api'; // Base API URL
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL_SERVER}api`; // Use the environment variable
 
   useEffect(() => {
     if (!user) {
@@ -39,7 +39,7 @@ const Videos = () => {
     <div className="grid grid-cols-4 gap-6">
     {videos.map(video => (
   <div key={video._id} className="border p-4 shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
-    <img src={`https://hstvvideoapp.azurewebsites.net/videos/thumbnails/${video.thumbnail}`}  className="w-full h-auto rounded-t-lg" />
+    <img src={video.thumbnail}  className="w-full h-auto rounded-t-lg" />
     <div className="p-4">
       <h3 className="text-lg font-semibold">{video.title}</h3>
       <p className="text-gray-600">{video.description}</p>

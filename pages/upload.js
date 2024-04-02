@@ -11,7 +11,9 @@ const UploadVideo = () => {
   const [access, setAccess] = useState('public');
   const [status, setStatus] = useState('active');
   const [monetization, setMonetization] = useState('free');
-  const [uploadProgress, setUploadProgress] = useState(0); // Add this line
+  const [uploadProgress, setUploadProgress] = useState(0); // Add this line to track progress
+  const [thumbnailFile, setThumbnailFile] = useState(null); // State for thumbnail file
+
 
 
   const handleDragOver = useCallback((e) => {
@@ -38,6 +40,12 @@ const UploadVideo = () => {
     }
   }, []);
 
+  const handleThumbnailChange = useCallback((e) => {
+    if (e.target.files && e.target.files[0]) {
+      setThumbnailFile(e.target.files[0]);
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -50,6 +58,7 @@ const UploadVideo = () => {
     formData.append('status', status);
     formData.append('monetization', monetization ? 'subscription' : 'free');
     formData.append('video', videoFile);
+    formData.append('thumbnail', thumbnailFile); // Append the thumbnail file to formData
   
     const xhr = new XMLHttpRequest();
   
@@ -77,7 +86,7 @@ const UploadVideo = () => {
       alert("Network error. Please check your connection and try again."); // Show network error alert
     };
   
-    xhr.open('POST', 'https://hstvvideoapp.azurewebsites.net/api/videos/create', true);
+    xhr.open('POST', 'https://hstvvideoapp.azurewebsites.net/api/videos/upload-video', true);
     xhr.send(formData);
   };
 
@@ -164,6 +173,16 @@ const UploadVideo = () => {
     /><span className="ml-2 text-white">Enable Subscription View</span>
   </label>
 </div>
+<div className="mb-4">
+            <label htmlFor="thumbnail" className="block text-sm font-bold mb-2">Thumbnail</label>
+            <input
+              type="file"
+              id="thumbnail"
+              onChange={handleThumbnailChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              accept="image/*" // Ensure only images can be selected
+            />
+          </div>
         <div className="mb-4">
   <div
     className={`p-4 border-2 ${dragging ? 'border-blue-500' : 'border-gray-300'} border-dashed rounded flex justify-center items-center`}

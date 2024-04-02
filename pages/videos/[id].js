@@ -6,9 +6,12 @@ import VideoEditForm from '@/components/videoeditform'; // Ensure this path matc
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
-  const apiUrl = 'https://hstvvideoapp.azurewebsites.net/api/videos/';
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL_SERVER}api/videos/`; // Use the environment variable
+
   const res = await fetch(`${apiUrl}${id}`);
   const video = await res.json();
+  console.log(video)
+  
 
   if (!video) {
     return {
@@ -24,15 +27,15 @@ export async function getServerSideProps(context) {
 const VideoDetails = ({ video }) => {
   const [isEditMode, setIsEditMode] = useState(false); // Initialize edit mode state
   const router = useRouter();
-  const tagsString = video.video.tags && video.video.tags.length > 0 ? video.video.tags.join(', ') : 'No tags';
-  const formattedUploadDate = video.video.uploadDate ? format(new Date(video.video.uploadDate), 'PPP') : 'Unknown';
+  const tagsString = video.tags && video.tags.length > 0 ? video.tags.join(', ') : 'No tags';
+  const formattedUploadDate = video.uploadDate ? format(new Date(video.uploadDate), 'PPP') : 'Unknown';
 
  // Inside VideoDetails component
 
 // Function to handle saving the edited video details
 const handleSave = async (editedVideo) => {
   console.log(video)
-  const apiUrl = `https://hstvvideoapp.azurewebsites.net/api/videos/${video.video._id}`; // Use the correct ID
+  const apiUrl = `${process.env.NEXT_PUBLIC_API_URL_SERVER}api/videos/${video._id}`; // Use the environment variable and correct ID
   try {
     const response = await fetch(apiUrl, {
       method: 'PUT', // Specify the method to update
@@ -72,7 +75,7 @@ const handleSave = async (editedVideo) => {
               <div className="relative" style={{ paddingTop: "56.25%" }}>
                 <video 
                   controls 
-                  src={video.video.filePath}
+                  src={video.filePath}
                   className="absolute top-0 left-0 w-full h-full object-contain"
                 >
                   Your browser does not support the video tag.
@@ -82,11 +85,11 @@ const handleSave = async (editedVideo) => {
             <div className="lg:w-1/3 lg:pl-4 mt-4 lg:mt-0">
               <div>
                 <h1 className="text-2xl font-bold mb-2">Video Details</h1>
-                <h2 className="text-xl font-semibold mb-2">{video.video.title}</h2>
-                <p className="mb-4">{video.video.description}</p>
+                <h2 className="text-xl font-semibold mb-2">{video.title}</h2>
+                <p className="mb-4">{video.description}</p>
                 <p><strong>Upload Date:</strong> {formattedUploadDate}</p>
-                <p><strong>Duration:</strong> {video.video.duration ? `${video.video.duration} minutes` : 'Unknown'}</p>
-                <p><strong>Views:</strong> {video.video.views}</p>
+                <p><strong>Duration:</strong> {video.duration ? `${video.duration} minutes` : 'Unknown'}</p>
+                <p><strong>Views:</strong> {video.views}</p>
                 <p><strong>Tags:</strong> {tagsString}</p>
                 {/* Display other details as needed */}
                 <button
