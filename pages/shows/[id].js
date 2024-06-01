@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/layout';
-import { getShowById, updateShow, getEpisodesByShowId } from '@/functions/getShows'; // Assuming you have functions to get and update a show, and to fetch episodes
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import supabase from '@/lib/supabase';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import ImageUpload from '@/components/showThumbnaill';
 
 const ShowDetailPage = () => {
   const router = useRouter();
@@ -21,17 +21,39 @@ const ShowDetailPage = () => {
   useEffect(() => {
     const fetchShow = async () => {
       if (id) {
-        const showData = await getShowById(id);
-        setShow(showData);
+        const { data, error } = await supabase
+          .from('shows')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching show:', error);
+          setLoading(false);
+          return;
+        }
+
+        setShow(data);
         setLoading(false);
       }
     };
+
     const fetchEpisodes = async () => {
       if (id) {
-        const episodesData = await getEpisodesByShowId(id);
-        setEpisodes(episodesData);
+        const { data, error } = await supabase
+          .from('episodes')
+          .select('*')
+          .eq('show', id);
+
+        if (error) {
+          console.error('Error fetching episodes:', error);
+          return;
+        }
+
+        setEpisodes(data);
       }
     };
+
     fetchShow();
     fetchEpisodes();
   }, [id]);
@@ -39,6 +61,10 @@ const ShowDetailPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setShow({ ...show, [name]: value });
+  };
+
+  const handleThumbnailChange = (newThumbnail) => {
+    setShow({ ...show, thumbnail: newThumbnail });
   };
 
   const handleSubmit = async (e) => {
@@ -51,8 +77,7 @@ const ShowDetailPage = () => {
       const { data, error } = await supabase
         .from('shows')
         .update(show)
-        .eq('id', id)
-        .select();
+        .eq('id', id);
 
       console.log('Update response:', data);
 
@@ -60,7 +85,7 @@ const ShowDetailPage = () => {
         setErrorMessage('Failed to update the show. Please try again.');
         console.error('Update error:', error);
       } else {
-        setShow(data[0]); // Update the local state with the first updated show data
+         // Update the local state with the first updated show data
         setUpdateMessage('Show updated successfully!');
       }
     } catch (error) {
@@ -112,7 +137,7 @@ const ShowDetailPage = () => {
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Show</h2>
           <div className="flex flex-col md:flex-row">
             <div className="md:w-1/3 mb-4 md:mb-0">
-              <img src={show.thumbnail} alt={show.title} className="rounded" />
+              <ImageUpload thumbnail={show.thumbnail} onThumbnailChange={handleThumbnailChange} />
             </div>
             <div className="md:w-2/3 md:ml-4">
               <form onSubmit={handleSubmit}>

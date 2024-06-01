@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Home, Tv, BarChart2, Library, Settings, Menu, X } from 'lucide-react'; // Importing the necessary icons
 
 const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false); // Initial state set to false
 
   return (
     <div
