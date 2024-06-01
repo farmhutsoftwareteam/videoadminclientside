@@ -85,7 +85,6 @@ const ShowDetailPage = () => {
         setErrorMessage('Failed to update the show. Please try again.');
         console.error('Update error:', error);
       } else {
-         // Update the local state with the first updated show data
         setUpdateMessage('Show updated successfully!');
       }
     } catch (error) {
@@ -203,7 +202,7 @@ const ShowDetailPage = () => {
             value={searchQuery}
             onChange={handleSearch}
           />
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto lg:overflow-x-visible">
             <table className="w-full text-left">
               <thead>
                 <tr>
@@ -221,10 +220,10 @@ const ShowDetailPage = () => {
                     <td className="py-2 px-4 text-gray-900 dark:text-gray-100">
                       <img src={episode.thumbnail} alt={episode.title} className="w-16 h-16 rounded" />
                     </td>
-                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100 truncate">{episode.title}</td>
-                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100 truncate">{episode.description}</td>
-                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.season}</td>
-                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.episode}</td>
+                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.title}</td>
+                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.description}</td>
+                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.seasonnumber}</td>
+                    <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.episodenumber}</td>
                     <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.duration} min</td>
                   </tr>
                 ))}
