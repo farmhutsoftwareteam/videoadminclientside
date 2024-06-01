@@ -56,15 +56,20 @@ export async function getEpisodesByShowId(showId) {
 }
 
 export async function updateShow(showId, updatedData) {
-  const { data, error } = await supabase
-    .from('shows')
-    .update(updatedData)
-    .eq('id', showId);
-
-  if (error) {
-    console.error(`Error updating show with ID ${showId}:`, error);
-    return null;
+    console.log('Updating show with ID:', showId);
+    console.log('Updated data being sent:', updatedData);
+  
+    const { data, error } = await supabase
+      .from('shows')
+      .update(updatedData)
+      .eq('id', showId)
+      .select(); // Ensure we select the updated data
+  
+    if (error) {
+      console.error(`Error updating show with ID ${showId}:`, error);
+      return null;
+    }
+  
+    console.log('Updated show data received:', data); // Log the updated data
+    return data;
   }
-
-  return data;
-}

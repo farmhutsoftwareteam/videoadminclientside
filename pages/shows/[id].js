@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/layout';
 import { getShowById, updateShow, getEpisodesByShowId } from '@/functions/getShows'; // Assuming you have functions to get and update a show, and to fetch episodes
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import supabase from '@/lib/supabase';
 
 const ShowDetailPage = () => {
   const router = useRouter();
@@ -15,6 +16,7 @@ const ShowDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [updateMessage, setUpdateMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const fetchShow = async () => {
@@ -42,10 +44,32 @@ const ShowDetailPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUpdating(true);
-    await updateShow(id, show);
+    setErrorMessage('');
+    console.log('Submitting form with show data:', show);
+
+    try {
+      const { data, error } = await supabase
+        .from('shows')
+        .update(show)
+        .eq('id', id)
+        .select();
+
+      console.log('Update response:', data);
+
+      if (error) {
+        setErrorMessage('Failed to update the show. Please try again.');
+        console.error('Update error:', error);
+      } else {
+         
+        setUpdateMessage('Show updated successfully!');
+      }
+    } catch (error) {
+      setErrorMessage('Failed to update the show. Please try again.');
+      console.error('Update error:', error);
+    }
+
     setUpdating(false);
-    setUpdateMessage('Show updated successfully!');
-    setTimeout(() => setUpdateMessage(''), 3000);
+   
   };
 
   const handleSearch = (e) => {
@@ -65,7 +89,11 @@ const ShowDetailPage = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return (
+    <Layout>
+      <div>Loading...</div>
+    </Layout>
+  );
 
   return (
     <Layout>
@@ -73,6 +101,11 @@ const ShowDetailPage = () => {
         {updateMessage && (
           <div className="mb-4 p-2 bg-green-500 text-white rounded">
             {updateMessage}
+          </div>
+        )}
+        {errorMessage && (
+          <div className="mb-4 p-2 bg-red-500 text-white rounded">
+            {errorMessage}
           </div>
         )}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-8">
