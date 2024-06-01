@@ -17,15 +17,8 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  @apply bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
 }
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;

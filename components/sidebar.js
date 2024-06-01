@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Home, Video, Tv, BarChart2, Settings } from 'lucide-react'; // Importing the necessary icons
+import { Home, Video, Tv, User, BarChart2, Settings  ,Library} from 'lucide-react'; // Importing the necessary icons
 
 const Sidebar = () => {
   return (
@@ -11,22 +11,23 @@ const Sidebar = () => {
           Dashboard
         </a>
       </Link>
-      <Link legacyBehavior href="/videos">
+      <Link legacyBehavior href="/shows">
         <a className="py-4 px-6 flex items-center hover:bg-gray-600">
-          <Video className="mr-2" size={20} aria-hidden="true" />
+          <Tv className="mr-2" size={20} aria-hidden="true" />
           Shows
         </a>
       </Link>
-      <Link legacyBehavior href="/episodes">
-        <a className="py-4 px-6 flex items-center hover:bg-gray-600">
-          <Tv className="mr-2" size={20} aria-hidden="true" />
-          Episodes
-        </a>
-      </Link>
+     
       <Link legacyBehavior href="/finance">
         <a className="py-4 px-6 flex items-center hover:bg-gray-600">
           <BarChart2 className="mr-2" size={20} aria-hidden="true" />
           Finance
+        </a>
+      </Link>
+      <Link legacyBehavior href="/categories">
+        <a className="py-4 px-6 flex items-center hover:bg-gray-600">
+          <Library className="mr-2" size={20} aria-hidden="true" />
+          Categories
         </a>
       </Link>
       <Link legacyBehavior href="/settings">
