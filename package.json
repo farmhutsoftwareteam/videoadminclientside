@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.18.0",
     "@heroicons/react": "^2.1.3",
     "@supabase/supabase-js": "^2.43.0",
     "date-fns": "^3.6.0",
