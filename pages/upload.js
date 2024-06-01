@@ -57,6 +57,7 @@ const UploadEpisode = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+  
     const episodeDetails = {
       title,
       description,
@@ -66,22 +67,21 @@ const UploadEpisode = () => {
       show: selectedShowId, // Use the selected show ID
       monetization,
     };
-
+  
     try {
       const response = await uploadVideoAndAddToDB(videoFile, thumbnailFile, episodeDetails, (progress) => {
-          setUploadProgress(progress);
-        });
-      console.log("Upload and DB entry successful:", response);
+        setUploadProgress(progress);
+      });
+      console.log('Upload and DB entry successful:', response);
       setUploadProgress(0); // Reset upload progress
-      alert("Upload successful!");
-    
-       setTimeout(() => {
-      window.location.href = `/shows`;
-    }, 5000); // Redirect after 5 seconds
+      alert('Upload successful!');
+      setTimeout(() => {
+        window.location.href = `/shows/${selectedShowId}`;
+      }, 5000); // Redirect after 5 seconds
     } catch (error) {
-      console.error("Upload failed:", error);
-      alert("Upload failed. Please try again.");
-    }finally {
+      console.error('Upload failed:', error);
+      alert('Upload failed. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
