@@ -60,7 +60,7 @@ const ShowDetailPage = () => {
         setErrorMessage('Failed to update the show. Please try again.');
         console.error('Update error:', error);
       } else {
-         
+        setShow(data[0]); // Update the local state with the first updated show data
         setUpdateMessage('Show updated successfully!');
       }
     } catch (error) {
@@ -69,7 +69,7 @@ const ShowDetailPage = () => {
     }
 
     setUpdating(false);
-   
+    setTimeout(() => setUpdateMessage(''), 3000);
   };
 
   const handleSearch = (e) => {
