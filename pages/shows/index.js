@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Layout from '@/components/layout';
 import { getShows } from '@/functions/getShows'; // Assuming you have a function to fetch shows
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const ShowsPage = () => {
   const [shows, setShows] = useState([]);
@@ -29,6 +31,7 @@ const ShowsPage = () => {
   const indexOfLastShow = currentPage * showsPerPage;
   const indexOfFirstShow = indexOfLastShow - showsPerPage;
   const currentShows = filteredShows.slice(indexOfFirstShow, indexOfLastShow);
+  const totalPages = Math.ceil(filteredShows.length / showsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -56,11 +59,19 @@ const ShowsPage = () => {
             </thead>
             <tbody>
               {currentShows.map(show => (
-                <tr key={show.id}>
+                <tr key={show.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
                   <td className="py-2 px-4 text-gray-900 dark:text-gray-100">
-                    <img src={show.thumbnail} alt={show.title} className="w-16 h-16 rounded"/>
+                    <Link href={`/shows/${show.id}`}>
+                     
+                        <img src={show.thumbnail} alt={show.title} className="w-16 h-16 rounded"/>
+                      
+                    </Link>
                   </td>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{show.title}</td>
+                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">
+                    <Link href={`/shows/${show.id}`}>
+                      {show.title}
+                    </Link>
+                  </td>
                   <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{show.description}</td>
                   <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{show.category}</td>
                   <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{show.free ? 'Yes' : 'No'}</td>
@@ -68,20 +79,25 @@ const ShowsPage = () => {
               ))}
             </tbody>
           </table>
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-between items-center mt-4">
             <button
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded"
+              className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded flex items-center"
             >
+              <ChevronLeft size={16} />
               Previous
             </button>
+            <span className="text-gray-900 dark:text-gray-100">
+              Page {currentPage} of {totalPages}
+            </span>
             <button
               onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === Math.ceil(filteredShows.length / showsPerPage)}
-              className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded"
+              disabled={currentPage === totalPages}
+              className="p-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded flex items-center"
             >
               Next
+              <ChevronRight size={16} />
             </button>
           </div>
         </div>

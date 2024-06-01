@@ -12,16 +12,12 @@ const ShowDetailPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [episodesPerPage] = useState(10);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [updateMessage, setUpdateMessage] = useState('');
 
   useEffect(() => {
     const fetchShow = async () => {
       if (id) {
         const showData = await getShowById(id);
         setShow(showData);
-        setLoading(false);
       }
     };
     const fetchEpisodes = async () => {
@@ -41,11 +37,8 @@ const ShowDetailPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setUpdating(true);
     await updateShow(id, show);
-    setUpdating(false);
-    setUpdateMessage('Show updated successfully!');
-    setTimeout(() => setUpdateMessage(''), 3000);
+    // Optionally, you could redirect or show a success message
   };
 
   const handleSearch = (e) => {
@@ -65,16 +58,11 @@ const ShowDetailPage = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  if (loading) return <div>Loading...</div>;
+  if (!show) return <div>Loading...</div>;
 
   return (
     <Layout>
       <div className="p-4 md:p-8">
-        {updateMessage && (
-          <div className="mb-4 p-2 bg-green-500 text-white rounded">
-            {updateMessage}
-          </div>
-        )}
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Edit Show</h2>
           <div className="flex flex-col md:flex-row">
@@ -115,8 +103,8 @@ const ShowDetailPage = () => {
                 <div className="mb-4">
                   <label className="block text-gray-900 dark:text-gray-100 mb-1">Free</label>
                   <select
-                    name="isfree"
-                    value={show.isfree}
+                    name="free"
+                    value={show.free}
                     onChange={handleInputChange}
                     className="p-2 w-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded"
                   >
@@ -126,10 +114,9 @@ const ShowDetailPage = () => {
                 </div>
                 <button
                   type="submit"
-                  className={`p-2 ${updating ? 'bg-gray-500' : 'bg-blue-500'} text-white rounded`}
-                  disabled={updating}
+                  className="p-2 bg-blue-500 text-white rounded"
                 >
-                  {updating ? 'Loading...' : 'Save'}
+                  Save
                 </button>
               </form>
             </div>
@@ -164,8 +151,8 @@ const ShowDetailPage = () => {
                   </td>
                   <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.title}</td>
                   <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.description}</td>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.season}</td>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.episode}</td>
+                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.seasonnumber}</td>
+                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.episodenumber}</td>
                   <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{episode.duration} min</td>
                 </tr>
               ))}
