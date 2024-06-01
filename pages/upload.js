@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { CloudUpload, Image } from 'lucide-react'; // Importing icons from Lucide
 import Layout from '@/components/layout';
+import { getShows } from '../functions/getShows'; // Adjust the import path as necessary
+import { uploadVideoAndAddToDB } from '../functions/createvideo'; // Adjust the import path as necessary
 
 const UploadEpisode = () => {
   const [title, setTitle] = useState('');
@@ -11,12 +13,31 @@ const UploadEpisode = () => {
   const [episodeNumber, setEpisodeNumber] = useState('');
   const [duration, setDuration] = useState('');
   const [show, setShow] = useState('');
+  const [showOptions, setShowOptions] = useState([]);
+  const [selectedShowId, setSelectedShowId] = useState(null);
   const [monetization, setMonetization] = useState('free');
   const [uploadProgress, setUploadProgress] = useState(0); // Add this line to track progress
+
+  useEffect(() => {
+    const fetchShowOptions = async () => {
+      const shows = await getShows();
+      setShowOptions(shows);
+    };
+    fetchShowOptions();
+  }, []);
 
   const handleFileChange = useCallback((e) => {
     if (e.target.files && e.target.files[0]) {
       setVideoFile(e.target.files[0]);
+      // Automatically set the duration here
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        const videoDuration = video.duration;
+        setDuration(videoDuration.toFixed(2)); // Set duration in seconds
+      };
+      video.src = URL.createObjectURL(e.target.files[0]);
     }
   }, []);
 
@@ -35,13 +56,12 @@ const UploadEpisode = () => {
       seasonnumber: seasonNumber,
       episodenumber: episodeNumber,
       duration,
-      show,
+      show: selectedShowId, // Use the selected show ID
       monetization,
       thumbnail: thumbnailFile, // Assuming you handle thumbnail similarly
     };
 
     // Call the function to upload video and episode details
-    // This function should be defined in your createvideo.js or similar file
     uploadVideoAndAddToDB(videoFile, episodeDetails)
       .then(response => {
         console.log('Upload and DB entry successful:', response);
@@ -52,6 +72,19 @@ const UploadEpisode = () => {
         console.error('Upload failed:', error);
         alert('Upload failed. Please try again.');
       });
+  };
+
+  const filteredShowOptions = showOptions.filter(option =>
+    option.title.toLowerCase().includes(show.toLowerCase())
+  );
+
+  const handleShowSelect = (selectedTitle) => {
+    const selectedShow = showOptions.find(option => option.title === selectedTitle);
+    if (selectedShow) {
+      setSelectedShowId(selectedShow.id);
+    } else {
+      setSelectedShowId(null); // Reset if no valid selection
+    }
   };
 
   return (
@@ -100,19 +133,36 @@ const UploadEpisode = () => {
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                readOnly
                 required
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="show" className="block text-sm font-bold mb-2">Show</label>
+            <label htmlFor="show" className="block text-sm font-bold mb-2">
+        Show
+        <a href="/create-show" className="text-blue-500 ml-2">Create new show</a>
+      </label>
               <input
                 type="text"
                 id="show"
                 value={show}
-                onChange={(e) => setShow(e.target.value)}
+                onChange={(e) => {
+                  setShow(e.target.value);
+                  handleShowSelect(e.target.value);
+                }}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                list="show-options"
                 required
               />
+              <datalist id="show-options" className="max-h-40 overflow-y-auto">
+                {filteredShowOptions.length > 0 ? (
+                  filteredShowOptions.slice(0, 10).map((option, index) => (
+                    <option key={index} value={option.title} />
+                  ))
+                ) : (
+                  <option value="Create new show">Create new show</option>
+                )}
+              </datalist>
             </div>
             <div className="mb-4">
               <label htmlFor="monetization" className="block text-sm font-bold mb-2">Monetization</label>
