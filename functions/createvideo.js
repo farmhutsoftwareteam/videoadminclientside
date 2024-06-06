@@ -1,38 +1,60 @@
 import axios from 'axios';
+import supabase from '../lib/supabase';
 
-export const uploadVideoAndAddToDB = async (videoFile, thumbnailFile, episodeDetails, onProgress) => {
-  try {
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL_SERVER}/api/videos/upload-episode`; // Use the environment variable
-    const formData = new FormData();
-    formData.append('thumbnail', thumbnailFile);
-    formData.append('video', videoFile); // Append the entire video file
-    formData.append('title', episodeDetails.title);
-    formData.append('description', episodeDetails.description);
-    formData.append('duration', episodeDetails.duration);
-    formData.append('episodenumber', episodeDetails.episodenumber);
-    formData.append('seasonnumber', episodeDetails.seasonnumber);
-    formData.append('show', episodeDetails.show);
-    formData.append('monetization', episodeDetails.monetization);
 
-    const response = await axios.post(apiUrl, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: (progressEvent) => {
-        const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-        console.log(`Upload Progress: ${progress}%`);
-        if (onProgress) onProgress(progress);
-      },
-    });
 
-    if (response.status !== 201) {
-      console.error(`Upload failed with status: ${response.status}`);
-      throw new Error('Failed to upload file');
-    }
+export async function uploadVideoAndAddToDB(episodeDetails) {
+  const { data, error } = await supabase.from('episodes').insert([
+    {
+      title: episodeDetails.title,
+      description: episodeDetails.description,
+      seasonnumber: episodeDetails.seasonnumber,
+      episodenumber: episodeDetails.episodenumber,
+      thumbnail: episodeDetails.thumbnail,
+      video_url: episodeDetails.video_url,
+      show: episodeDetails.show,
+      isFree: episodeDetails.isFree,
+    },
+  ]);
 
-    return response.data;
-  } catch (error) {
-    console.error('Error uploading video and metadata:', error);
+  if (error) {
     throw error;
   }
-};
+
+  return data;
+}
+
+
+
+export async function createEpisode({
+  seasonnumber,
+  episodenumber,
+  title,
+  duration,
+  thumbnail,
+  video_url,
+  description,
+  show,
+  isFree
+}) {
+  const { data, error } = await supabase.from('episodes').insert([
+    {
+      seasonnumber,
+      episodenumber,
+      title,
+      duration,
+      thumbnail,
+      video_url,
+      description,
+      show,
+      isFree
+    }
+  ]);
+
+  if (error) {
+    console.error('Error creating episode:', error);
+    return null;
+  }
+
+  return data;
+}

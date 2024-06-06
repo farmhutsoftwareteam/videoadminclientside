@@ -7,19 +7,15 @@ import { uploadVideoAndAddToDB } from "../functions/createvideo"; // Adjust the 
 const UploadEpisode = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [videoFile, setVideoFile] = useState(null);
-  const [thumbnailFile, setThumbnailFile] = useState(null); // State for thumbnail file
+  const [videoURL, setVideoURL] = useState("");
+  const [thumbnailURL, setThumbnailURL] = useState(""); // State for thumbnail URL
   const [seasonNumber, setSeasonNumber] = useState("");
   const [episodeNumber, setEpisodeNumber] = useState("");
-  const [duration, setDuration] = useState("");
   const [show, setShow] = useState("");
   const [showOptions, setShowOptions] = useState([]);
   const [selectedShowId, setSelectedShowId] = useState(null);
   const [monetization, setMonetization] = useState("free");
-  const [uploadProgress, setUploadProgress] = useState(0); // Add this line to track progress
   const [isLoading, setIsLoading] = useState(false);
-  const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const [videoPreview, setVideoPreview] = useState(null);
 
   useEffect(() => {
     const fetchShowOptions = async () => {
@@ -29,51 +25,40 @@ const UploadEpisode = () => {
     fetchShowOptions();
   }, []);
 
-  const handleFileChange = useCallback((e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setVideoFile(file);
-      setVideoPreview(URL.createObjectURL(file));
-      // Automatically set the duration here
-      const video = document.createElement("video");
-      video.preload = "metadata";
-      video.onloadedmetadata = () => {
-        window.URL.revokeObjectURL(video.src);
-        const videoDuration = video.duration;
-        setDuration(videoDuration.toFixed(2)); // Set duration in seconds
-      };
-      video.src = URL.createObjectURL(file);
-    }
-  }, []);
-
-  const handleThumbnailChange = useCallback((e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setThumbnailFile(file);
-      setThumbnailPreview(URL.createObjectURL(file));
-    }
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
   
+    // Check if the URLs are valid and not YouTube URLs
+    const isValidURL = (url) => {
+      try {
+        const newUrl = new URL(url);
+        return newUrl.hostname !== 'www.youtube.com' && newUrl.hostname !== 'youtube.com';
+      } catch (_) {
+        return false;
+      }
+    };
+  
+    if (!isValidURL(videoURL) || !isValidURL(thumbnailURL)) {
+      alert("Invalid URL. Please provide valid Azure Blob Storage URLs.");
+      setIsLoading(false);
+      return;
+    }
+
     const episodeDetails = {
       title,
       description,
       seasonnumber: seasonNumber,
       episodenumber: episodeNumber,
-      duration,
+      thumbnail: thumbnailURL,
+      video_url: videoURL,
       show: selectedShowId, // Use the selected show ID
-      monetization,
+      isFree: monetization === "free",
     };
   
     try {
-      const response = await uploadVideoAndAddToDB(videoFile, thumbnailFile, episodeDetails, (progress) => {
-        setUploadProgress(progress);
-      });
+      const response = await uploadVideoAndAddToDB(episodeDetails);
       console.log('Upload and DB entry successful:', response);
-      setUploadProgress(0); // Reset upload progress
       alert('Upload successful!');
       setTimeout(() => {
         window.location.href = `/shows/${selectedShowId}`;
@@ -85,9 +70,6 @@ const UploadEpisode = () => {
       setIsLoading(false);
     }
   };
-  
-  
-  
 
   const filteredShowOptions = showOptions.filter((option) =>
     option.title.toLowerCase().includes(show.toLowerCase())
@@ -151,23 +133,6 @@ const UploadEpisode = () => {
                 value={episodeNumber}
                 onChange={(e) => setEpisodeNumber(e.target.value)}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="duration"
-                className="block text-sm font-bold mb-2"
-              >
-                Duration
-              </label>
-              <input
-                type="text"
-                id="duration"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                readOnly
                 required
               />
             </div>
@@ -238,96 +203,46 @@ const UploadEpisode = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="mb-4">
               <label
-                htmlFor="thumbnail"
+                htmlFor="thumbnailURL"
                 className="block text-sm font-bold mb-2"
               >
-                Thumbnail
+                Thumbnail URL
               </label>
-              <div className="flex items-center justify-center w-full">
-                <label
-                  htmlFor="thumbnail"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500"
-                >
-                  {thumbnailPreview ? (
-                    <img
-                      src={thumbnailPreview}
-                      alt="Thumbnail Preview"
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <>
-                      <Image size={40} className="text-gray-500" />
-                      <span className="text-sm text-gray-500">
-                        Click to upload or drag and drop
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    id="thumbnail"
-                    onChange={handleThumbnailChange}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                </label>
-              </div>
+              <input
+                type="text"
+                id="thumbnailURL"
+                value={thumbnailURL}
+                onChange={(e) => setThumbnailURL(e.target.value)}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                required
+              />
+              <p className="text-sm text-gray-500">No YouTube URLs, only Azure Blob URLs.</p>
             </div>
             <div className="mb-4">
               <label
-                htmlFor="videoFile"
+                htmlFor="videoURL"
                 className="block text-sm font-bold mb-2"
               >
-                Video File
+                Video URL
               </label>
-              <div className="flex items-center justify-center w-full">
-                <label
-                  htmlFor="videoFile"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500"
-                >
-                  {videoPreview ? (
-                    <video
-                      src={videoPreview}
-                      controls
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  ) : (
-                    <>
-                      <CloudUpload size={40} className="text-gray-500" />
-                      <span className="text-sm text-gray-500">
-                        Click to upload or drag and drop
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    id="videoFile"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    accept="video/*"
-                  />
-                </label>
-              </div>
+              <input
+                type="text"
+                id="videoURL"
+                value={videoURL}
+                onChange={(e) => setVideoURL(e.target.value)}
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                required
+              />
+              <p className="text-sm text-gray-500">No YouTube URLs, only Azure Blob URLs.</p>
             </div>
           </div>
-          <div className="mb-4">
-    {uploadProgress > 0 && (
-      <div className="w-full bg-gray-200 rounded-full">
-        <div
-          className="bg-blue-500 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full"
-          style={{ width: `${uploadProgress}%` }}
-        >
-          {uploadProgress}%
-        </div>
-      </div>
-    )}
-  </div>
-  <button
-    type="submit"
-    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-    disabled={isLoading}
-  >
-    {isLoading ? 'Uploading...' : 'Upload Episode'}
-  </button>
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Uploading...' : 'Upload Episode'}
+          </button>
         </form>
       </div>
     </Layout>
