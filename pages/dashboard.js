@@ -34,7 +34,7 @@ const Dashboard = () => {
     ];
 
     setStats({
-      revenue: 5000,
+      revenue: 0,
       recentPayments: payments,
     });
 
