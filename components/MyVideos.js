@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,41 +11,27 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PlusIcon } from "@/components/ui/icons";
-
-// Dummy data for illustration
-const initialVideos = [
-  {
-    id: 1,
-    title: "My First Video",
-    views: "2.3K",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    id: 2,
-    title: "Learning React",
-    views: "1.5K",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    id: 3,
-    title: "Next.js Guide",
-    views: "3.7K",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    id: 4,
-    title: "UI Design Tips",
-    views: "4.1K",
-    thumbnail: "/placeholder.svg",
-  },
-];
+import { getEpisodes } from '../functions/getVideos';
 
 export default function MyVideos() {
-  const [videos, setVideos] = useState(initialVideos);
+  const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const videosData = await getEpisodes();
+        setVideos(videosData);
+      } catch (error) {
+        setError("Failed to fetch videos");
+        console.error("Error fetching videos:", error);
+      }
+    };
+    fetchVideos();
+  }, []);
 
   // Handle switching to edit mode
   const handleEditVideo = () => {
@@ -110,7 +96,7 @@ export default function MyVideos() {
         <img
           alt="Video thumbnail"
           className="aspect-video rounded-t-lg object-cover w-full"
-          src={video.thumbnail}
+          src={video.thumbnail || "/placeholder.svg"} // Use a default placeholder if thumbnail is missing
         />
         <div className="mt-2">
           <h3 className="text-lg font-medium">{video.title}</h3>
@@ -171,7 +157,7 @@ export default function MyVideos() {
         <img
           className="aspect-video rounded-lg object-cover"
           height="180"
-          src={selectedVideo.thumbnail}
+          src={selectedVideo.thumbnail || "/placeholder.svg"}
           width="320"
           alt={selectedVideo.title}
         />

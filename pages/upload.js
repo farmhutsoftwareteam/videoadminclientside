@@ -1,14 +1,18 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { CloudUpload, Image } from "lucide-react"; // Importing icons from Lucide
+import React, { useState, useEffect } from "react";
+import { useRouter } from 'next/router';
 import Layout from "@/components/layout";
-import { getShows } from "../functions/getShows"; // Adjust the import path as necessary
-import { uploadVideoAndAddToDB } from "../functions/createvideo"; // Adjust the import path as necessary
+import { getShows } from "../functions/getShows";
+import { uploadVideoAndAddToDB } from "../functions/createvideo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
 
-const UploadEpisode = () => {
+export default function UploadEpisode() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoURL, setVideoURL] = useState("");
-  const [thumbnailURL, setThumbnailURL] = useState(""); // State for thumbnail URL
+  const [thumbnailURL, setThumbnailURL] = useState("");
   const [seasonNumber, setSeasonNumber] = useState("");
   const [episodeNumber, setEpisodeNumber] = useState("");
   const [show, setShow] = useState("");
@@ -16,6 +20,7 @@ const UploadEpisode = () => {
   const [selectedShowId, setSelectedShowId] = useState(null);
   const [monetization, setMonetization] = useState("free");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchShowOptions = async () => {
@@ -28,8 +33,7 @@ const UploadEpisode = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-  
-    // Check if the URLs are valid and not YouTube URLs
+
     const isValidURL = (url) => {
       try {
         const newUrl = new URL(url);
@@ -38,7 +42,7 @@ const UploadEpisode = () => {
         return false;
       }
     };
-  
+
     if (!isValidURL(videoURL) || !isValidURL(thumbnailURL)) {
       alert("Invalid URL. Please provide valid Azure Blob Storage URLs.");
       setIsLoading(false);
@@ -52,17 +56,17 @@ const UploadEpisode = () => {
       episodenumber: episodeNumber,
       thumbnail: thumbnailURL,
       video_url: videoURL,
-      show: selectedShowId, // Use the selected show ID
+      show: selectedShowId,
       isFree: monetization === "free",
     };
-  
+
     try {
       const response = await uploadVideoAndAddToDB(episodeDetails);
       console.log('Upload and DB entry successful:', response);
       alert('Upload successful!');
       setTimeout(() => {
         window.location.href = `/shows/${selectedShowId}`;
-      }, 5000); // Redirect after 5 seconds
+      }, 5000);
     } catch (error) {
       console.error('Upload failed:', error);
       alert('Upload failed. Please try again.');
@@ -82,171 +86,146 @@ const UploadEpisode = () => {
     if (selectedShow) {
       setSelectedShowId(selectedShow.id);
     } else {
-      setSelectedShowId(null); // Reset if no valid selection
+      setSelectedShowId(null);
     }
   };
 
   return (
-    <Layout>
+
       <div className="flex justify-center mt-10">
-        <form onSubmit={handleSubmit} className="w-full max-w-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="mb-4">
-              <label htmlFor="title" className="block text-sm font-bold mb-2">
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="seasonNumber"
-                className="block text-sm font-bold mb-2"
-              >
-                Season Number
-              </label>
-              <input
-                type="number"
-                id="seasonNumber"
-                value={seasonNumber}
-                onChange={(e) => setSeasonNumber(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="episodeNumber"
-                className="block text-sm font-bold mb-2"
-              >
-                Episode Number
-              </label>
-              <input
-                type="number"
-                id="episodeNumber"
-                value={episodeNumber}
-                onChange={(e) => setEpisodeNumber(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="show" className="block text-sm font-bold mb-2">
-                Show
-                <a href="/create-show" className="text-blue-500 ml-2">
-                  Create new show
-                </a>
-              </label>
-              <input
-                type="text"
-                id="show"
-                value={show}
-                onChange={(e) => {
-                  setShow(e.target.value);
-                  handleShowSelect(e.target.value);
-                }}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                list="show-options"
-                required
-              />
-              <datalist id="show-options" className="max-h-40 overflow-y-auto">
-                {filteredShowOptions.length > 0 ? (
-                  filteredShowOptions
-                    .slice(0, 10)
-                    .map((option, index) => (
-                      <option key={index} value={option.title} />
-                    ))
-                ) : (
-                  <option value="Create new show">Create new show</option>
-                )}
-              </datalist>
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="monetization"
-                className="block text-sm font-bold mb-2"
-              >
-                Monetization
-              </label>
-              <select
-                id="monetization"
-                value={monetization}
-                onChange={(e) => setMonetization(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              >
-                <option value="free">Free</option>
-                <option value="paid">Paid</option>
-              </select>
-            </div>
-            <div className="mb-4 col-span-2">
-              <label
-                htmlFor="description"
-                className="block text-sm font-bold mb-2"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="w-full max-w-2xl bg-white dark:bg-gray-900 p-8 rounded-lg shadow-md">
+          <div className="mb-4">
+            <label htmlFor="title" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Title
+            </label>
+            <Input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter the title of the episode"
+              required
+            />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="mb-4">
-              <label
-                htmlFor="thumbnailURL"
-                className="block text-sm font-bold mb-2"
-              >
-                Thumbnail URL
-              </label>
-              <input
-                type="text"
-                id="thumbnailURL"
-                value={thumbnailURL}
-                onChange={(e) => setThumbnailURL(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-              <p className="text-sm text-gray-500">No YouTube URLs, only Azure Blob URLs.</p>
-            </div>
-            <div className="mb-4">
-              <label
-                htmlFor="videoURL"
-                className="block text-sm font-bold mb-2"
-              >
-                Video URL
-              </label>
-              <input
-                type="text"
-                id="videoURL"
-                value={videoURL}
-                onChange={(e) => setVideoURL(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-              <p className="text-sm text-gray-500">No YouTube URLs, only Azure Blob URLs.</p>
-            </div>
+          <div className="mb-4">
+            <label htmlFor="seasonNumber" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Season Number
+            </label>
+            <Input
+              type="number"
+              id="seasonNumber"
+              value={seasonNumber}
+              onChange={(e) => setSeasonNumber(e.target.value)}
+              placeholder="Enter the season number"
+              required
+            />
           </div>
-          <button
+          <div className="mb-4">
+            <label htmlFor="episodeNumber" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Episode Number
+            </label>
+            <Input
+              type="number"
+              id="episodeNumber"
+              value={episodeNumber}
+              onChange={(e) => setEpisodeNumber(e.target.value)}
+              placeholder="Enter the episode number"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="show" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Show
+              <Link href="/show" className="text-red-500 ml-2 hover:underline">
+                Create new show
+              </Link>
+            </label>
+            <Input
+              type="text"
+              id="show"
+              value={show}
+              onChange={(e) => {
+                setShow(e.target.value);
+                handleShowSelect(e.target.value);
+              }}
+              placeholder="Search for an existing show"
+              list="show-options"
+              required
+            />
+            <datalist id="show-options" className="max-h-40 overflow-y-auto">
+              {filteredShowOptions.length > 0 ? (
+                filteredShowOptions.slice(0, 10).map((option, index) => (
+                  <option key={index} value={option.title} />
+                ))
+              ) : (
+                <option value="Create new show">Create new show</option>
+              )}
+            </datalist>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="monetization" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Monetization
+            </label>
+            <select
+              id="monetization"
+              value={monetization}
+              onChange={(e) => setMonetization(e.target.value)}
+              className="w-full py-2 px-3 border rounded-md text-gray-700 dark:text-gray-300 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="description" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Description
+            </label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Provide a brief description of the episode"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="thumbnailURL" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Thumbnail URL
+            </label>
+            <Input
+              type="text"
+              id="thumbnailURL"
+              value={thumbnailURL}
+              onChange={(e) => setThumbnailURL(e.target.value)}
+              placeholder="Enter the URL for the thumbnail image"
+              required
+            />
+            <p className="text-sm text-gray-500 mt-1">No YouTube URLs, only Azure Blob URLs.</p>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="videoURL" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+              Video URL
+            </label>
+            <Input
+              type="text"
+              id="videoURL"
+              value={videoURL}
+              onChange={(e) => setVideoURL(e.target.value)}
+              placeholder="Enter the URL for the video file"
+              required
+            />
+            <p className="text-sm text-gray-500 mt-1">No YouTube URLs, only Azure Blob URLs.</p>
+          </div>
+          <Button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            className="bg-red-500 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             disabled={isLoading}
           >
             {isLoading ? 'Uploading...' : 'Upload Episode'}
-          </button>
+          </Button>
         </form>
       </div>
-    </Layout>
-  );
-};
 
-export default UploadEpisode;
+  );
+}

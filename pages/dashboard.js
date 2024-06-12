@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from 'next/router'; // Import useRouter for navigation
 import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,20 +24,17 @@ import {
   UsersIcon,
   VideoIcon,
 } from "@/components/ui/icons";
-// import Trending from "./Trending";
-// import MyVideos from "./MyVideos";
-// import Subscriptions from "./Subscriptions";
-// import Shows from "./Shows";
-// import Categories from "./Categories";
-// import Settings from "./Settings";
 import NavigationItem from "@/components/NavigationItem";
 import Home from "@/components/Home";
 import MyVideos from "@/components/MyVideos";
 import Subscriptions from "@/components/Subscriptions";
 import Shows from "@/components/Shows";
+import Categories from "@/components/categories";
+import Settings from "@/components/Settings";
 
 export function Dashboard() {
   const [activeSection, setActiveSection] = useState("home");
+  const router = useRouter(); // Initialize router
 
   const handleLogout = () => {
     Cookies.remove("token");
@@ -47,8 +45,8 @@ export function Dashboard() {
     switch (activeSection) {
       case "home":
         return <Home />;
-      case "trending":
-        return <Home/>;
+      // case "trending":
+      //   return <Home/>;
       case "my-videos":
         return <MyVideos />;
       case "subscriptions":
@@ -74,7 +72,7 @@ export function Dashboard() {
               <span className="">hstv</span>
             </Link>
             <Button className="ml-auto h-8 w-8" size="icon" variant="outline">
-              <BellIcon className="h-4 w-4" />
+
               <span className="sr-only">Toggle notifications</span>
             </Button>
           </div>
@@ -86,12 +84,12 @@ export function Dashboard() {
                 onClick={() => setActiveSection("home")}
                 isActive={activeSection === "home"}
               />
-              <NavigationItem
+              {/* <NavigationItem
                 icon={TrendingUpIcon}
                 label="Trending"
                 onClick={() => setActiveSection("trending")}
                 isActive={activeSection === "trending"}
-              />
+              /> */}
               <NavigationItem
                 icon={VideoIcon}
                 label="My Videos"
@@ -149,8 +147,19 @@ export function Dashboard() {
               </div>
             </form>
           </div>
-          <Button className="hidden lg:inline-flex" variant="outline">
-            Upload Video
+          <Button 
+            className="hidden lg:inline-flex bg-red-500 text-white" 
+            variant="outline" 
+            onClick={() => router.push('/upload')}
+          >
+            Create Video
+          </Button>
+          <Button 
+            className="hidden lg:inline-flex text-red-500" 
+            variant="outline" 
+            onClick={() => router.push('/show')}
+          >
+            Create Show
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

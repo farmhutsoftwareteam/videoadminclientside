@@ -32,7 +32,6 @@ export function Dashboard() {
               <span className="">hstv</span>
             </Link>
             <Button className="ml-auto h-8 w-8" size="icon" variant="outline">
-              <BellIcon className="h-4 w-4" />
               <span className="sr-only">Toggle notifications</span>
             </Button>
           </div>

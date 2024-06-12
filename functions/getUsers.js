@@ -40,3 +40,17 @@ export async function getUserById(userId) {
 
   return data;
 }
+
+export async function getSubscribers() {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('issubscribed', 'TRUE')
+
+  if (error) {
+    console.error(`Error fetching subscribers:`, error);
+    return null;
+  }
+
+  return data;
+}
