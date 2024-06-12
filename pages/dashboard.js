@@ -1,113 +1,188 @@
-import React, { useEffect, useState } from 'react';
-import Layout from '@/components/layout';
-import { Users, Film, DollarSign } from 'lucide-react';
-import { getShowCount } from '@/functions/getShows';
-import { getUserCount } from '@/functions/getUsers';
+import React, { useState } from "react";
+import Link from "next/link";
+import Cookies from "js-cookie";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+  DropdownMenuContent,
+  DropdownMenu,
+} from "@/components/ui/dropdown-menu";
+import {
+  BellIcon,
+  DollarSignIcon,
+  HomeIcon,
+  LayoutGridIcon,
+  ListIcon,
+  SearchIcon,
+  SettingsIcon,
+  TrendingUpIcon,
+  UsersIcon,
+  VideoIcon,
+} from "@/components/ui/icons";
+// import Trending from "./Trending";
+// import MyVideos from "./MyVideos";
+// import Subscriptions from "./Subscriptions";
+// import Shows from "./Shows";
+// import Categories from "./Categories";
+// import Settings from "./Settings";
+import NavigationItem from "@/components/NavigationItem";
+import Home from "@/components/Home";
+import MyVideos from "@/components/MyVideos";
+import Subscriptions from "@/components/Subscriptions";
+import Shows from "@/components/Shows";
 
-const Dashboard = () => {
-  const [showCount, setShowCount] = useState(0);
-  const [userCount, setUserCount] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredPayments, setFilteredPayments] = useState([]);
+export function Dashboard() {
+  const [activeSection, setActiveSection] = useState("home");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const count = await getShowCount();
-      const usersData = await getUserCount();
+  const handleLogout = () => {
+    Cookies.remove("token");
+    router.push("/signin");
+  };
 
-      setShowCount(count);
-      setUserCount(usersData);
-    };
-    fetchData();
-  }, []);
-
-  const [stats, setStats] = useState({
-    revenue: 0,
-    recentPayments: [],
-  });
-
-  useEffect(() => {
-    const payments = [
-      { id: 1, customer: 'John Doe', amount: '$50', paymentMethod: 'Ecocash', date: '2024-05-01' },
-      { id: 2, customer: 'Jane Smith', amount: '$75', paymentMethod: 'Innbucks', date: '2024-05-02' },
-      // Add more recent payments Innbucks
-    ];
-
-    setStats({
-      revenue: 0,
-      recentPayments: payments,
-    });
-
-    setFilteredPayments(payments);
-  }, []);
-
-  useEffect(() => {
-    const filtered = stats.recentPayments.filter(payment =>
-      payment.customer.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredPayments(filtered);
-  }, [searchQuery, stats.recentPayments]);
+  const renderSection = () => {
+    switch (activeSection) {
+      case "home":
+        return <Home />;
+      case "trending":
+        return <Home/>;
+      case "my-videos":
+        return <MyVideos />;
+      case "subscriptions":
+        return <Subscriptions />;
+      case "shows":
+        return <Shows />;
+      case "categories":
+        return <Categories />;
+      case "settings":
+        return <Settings />;
+      default:
+        return <Home />;
+    }
+  };
 
   return (
-    <Layout>
-      <div className="p-4 md:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg flex items-center h-32 w-full">
-            <Film className="text-blue-500 dark:text-blue-400 mr-4" size={40} aria-hidden="true" />
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{showCount}</h3>
-              <p className="text-gray-600 dark:text-gray-400">Shows</p>
-            </div>
+    <div className="grid min-h-screen w-full grid-cols-[280px_1fr] bg-white dark:bg-gray-950">
+      <div className="hidden border-r bg-gray-100/40 lg:block dark:bg-gray-800/40">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+          <div className="flex h-[60px] items-center border-b px-6">
+            <Link className="flex items-center gap-2 font-semibold text-red-500" href="#">
+              <VideoIcon className="h-6 w-6" />
+              <span className="">hstv</span>
+            </Link>
+            <Button className="ml-auto h-8 w-8" size="icon" variant="outline">
+              <BellIcon className="h-4 w-4" />
+              <span className="sr-only">Toggle notifications</span>
+            </Button>
           </div>
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg flex items-center h-32 w-full">
-            <Users className="text-blue-500 dark:text-blue-400 mr-4" size={40} aria-hidden="true" />
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{userCount}</h3>
-              <p className="text-gray-600 dark:text-gray-400">Users</p>
-            </div>
+          <div className="flex-1 overflow-auto py-2">
+            <nav className="grid items-start px-4 text-sm font-medium">
+              <NavigationItem
+                icon={HomeIcon}
+                label="Home"
+                onClick={() => setActiveSection("home")}
+                isActive={activeSection === "home"}
+              />
+              <NavigationItem
+                icon={TrendingUpIcon}
+                label="Trending"
+                onClick={() => setActiveSection("trending")}
+                isActive={activeSection === "trending"}
+              />
+              <NavigationItem
+                icon={VideoIcon}
+                label="My Videos"
+                onClick={() => setActiveSection("my-videos")}
+                isActive={activeSection === "my-videos"}
+              />
+              <NavigationItem
+                icon={UsersIcon}
+                label="Subscriptions"
+                onClick={() => setActiveSection("subscriptions")}
+                isActive={activeSection === "subscriptions"}
+              />
+              <NavigationItem
+                icon={LayoutGridIcon}
+                label="Shows"
+                onClick={() => setActiveSection("shows")}
+                isActive={activeSection === "shows"}
+              />
+              <NavigationItem
+                icon={ListIcon}
+                label="Categories"
+                onClick={() => setActiveSection("categories")}
+                isActive={activeSection === "categories"}
+              />
+              <NavigationItem
+                icon={SettingsIcon}
+                label="Settings"
+                onClick={() => setActiveSection("settings")}
+                isActive={activeSection === "settings"}
+              />
+            </nav>
           </div>
-          <div className="p-6 bg-white dark:bg-gray-800 rounded-lg flex items-center h-32 w-full">
-            <DollarSign className="text-blue-500 dark:text-blue-400 mr-4" size={40} aria-hidden="true" />
-            <div>
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">${stats.revenue}</h3>
-              <p className="text-gray-600 dark:text-gray-400">Revenue</p>
-            </div>
+          <div className="mt-auto p-4">
+            <Button className="w-full" variant="outline" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Payments</h2>
-          <input
-            type="text"
-            className="mb-4 p-2 w-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded"
-            placeholder="Search by customer name..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
-          <table className="w-full text-left">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100">Customer</th>
-                <th className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100">Amount</th>
-                <th className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100">Payment Method</th>
-                <th className="py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPayments.map(payment => (
-                <tr key={payment.id}>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{payment.customer}</td>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{payment.amount}</td>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{payment.paymentMethod}</td>
-                  <td className="py-2 px-4 text-gray-900 dark:text-gray-100">{payment.date}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
-    </Layout>
+      <div className="flex flex-col">
+        <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-gray-100/40 px-6 dark:bg-gray-800/40">
+          <Link className="lg:hidden" href="#">
+            <VideoIcon className="h-6 w-6 text-red-500" />
+            <span className="sr-only">Home</span>
+          </Link>
+          <div className="w-full flex-1">
+            <form>
+              <div className="relative">
+                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <Input
+                  className="w-full bg-white shadow-none appearance-none pl-8 md:w-2/3 lg:w-1/3 dark:bg-gray-950"
+                  placeholder="Search videos..."
+                  type="search"
+                />
+              </div>
+            </form>
+          </div>
+          <Button className="hidden lg:inline-flex" variant="outline">
+            Upload Video
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="rounded-full border border-gray-200 w-8 h-8 dark:border-gray-800" size="icon" variant="ghost">
+                <img
+                  alt="Avatar"
+                  className="rounded-full"
+                  height="32"
+                  src="/placeholder.svg"
+                  style={{
+                    aspectRatio: "32/32",
+                    objectFit: "cover",
+                  }}
+                  width="32"
+                />
+                <span className="sr-only">Toggle user menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </header>
+        {renderSection()} {/* Render the active section */}
+      </div>
+    </div>
   );
-};
+}
 
 export default Dashboard;

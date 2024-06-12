@@ -31,7 +31,7 @@ export default function Signin() {
 
       if (response.ok) {
         Cookies.set('token', data.token, { expires: 7 });
-        router.push("/videos");
+        router.push("/dashboard");
       } else {
         setError(data.message || "Login failed");
       }
