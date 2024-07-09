@@ -44,11 +44,10 @@ export async function getUserById(userId) {
 export async function getSubscribers() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
-    .eq('issubscribed', 'TRUE')
+    .select('*');
 
   if (error) {
-    console.error(`Error fetching subscribers:`, error);
+    console.error('Error fetching subscribers:', error);
     return null;
   }
 
