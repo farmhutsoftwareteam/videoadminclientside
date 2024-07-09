@@ -180,7 +180,7 @@ export default function MyVideos() {
       <section className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">My Videos</h2>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={() => window.location.href = '/upload'}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Video
           </Button>
