@@ -1,74 +1,62 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { UsersIcon, LayoutGridIcon, ListIcon, DollarSignIcon } from "@/components/ui/icons";
+import { getUsers } from "@/functions/getUsers";
+import { getShowCount } from "@/functions/getShows";
+import { getSubscribers } from "@/functions/getUsers";
+import { getVideos } from "@/functions/getVideos";
 
-// Dummy data for illustration
-const stats = [
-  { label: "Users", value: "12.3K", icon: UsersIcon },
-  { label: "Shows", value: "345", icon: LayoutGridIcon },
-  { label: "Categories", value: "78", icon: ListIcon },
-  { label: "Revenue", value: "$12.3K", icon: DollarSignIcon }
-];
-
-const trendingVideos = [
-  {
-    title: "Trending Video",
-    views: "1.4K",
-    duration: "12:34",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    title: "Trending Video",
-    views: "3.4K",
-    duration: "8:45",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    title: "Trending Video",
-    views: "7.8K",
-    duration: "20:01",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    title: "Trending Video",
-    views: "2.9K",
-    duration: "15:22",
-    thumbnail: "/placeholder.svg",
-  },
-];
-
-const recommendedVideos = [
-  {
-    title: "Recommended Video",
-    views: "4.6K",
-    duration: "9:45",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    title: "Recommended Video",
-    views: "2.1K",
-    duration: "12:34",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    title: "Recommended Video",
-    views: "3.7K",
-    duration: "18:30",
-    thumbnail: "/placeholder.svg",
-  },
-  {
-    title: "Recommended Video",
-    views: "2.5K",
-    duration: "15:22",
-    thumbnail: "/placeholder.svg",
-  },
-];
 
 const Home = () => {
+  const [userCount, setUserCount] = useState(0);
+  const [showCount, setShowCount] = useState(0);
+  const [categoryCount, setCategoryCount] = useState(0);
+  const [revenue, setRevenue] = useState(0);
+  const [trendingVideos, setTrendingVideos] = useState([]);
+  const [recommendedVideos, setRecommendedVideos] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log("Fetching data...");
+        const [users, shows, categories, revenueData, trending, recommended] = await Promise.all([
+          getUsers(),
+          getShowCount(),
+          getSubscribers(),
+          getVideos(),
+          getVideos(),
+          getRecommendedVideos(),
+        ]);
+
+        console.log('Fetched users:', users);
+        console.log('Fetched shows count:', shows);
+        console.log('Fetched categories:', categories);
+        console.log('Fetched revenue data:', revenueData);
+        console.log('Fetched trending videos:', trending);
+        console.log('Fetched recommended videos:', recommended);
+
+        setUserCount(users.length || 0);
+        setShowCount(shows || 0);
+        setCategoryCount(categories.length || 0);
+        setRevenue(revenueData.length || 0);
+        setTrendingVideos(trending || []);
+        setRecommendedVideos(recommended || []);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const renderStats = () => {
-    return stats.map((stat, index) => (
+    return [
+      { label: "Users", value: userCount, icon: UsersIcon },
+      { label: "Shows", value: showCount, icon: LayoutGridIcon },
+      { label: "Categories", value: categoryCount, icon: ListIcon },
+      { label: "Revenue", value: `$${revenue}`, icon: DollarSignIcon }
+    ].map((stat, index) => (
       <Card key={index} className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
         <div className="flex items-center justify-between">
           <div>

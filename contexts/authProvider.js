@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
 
       // Redirect to '/videos' only if on the root page
       if (router.pathname === '/') {
-        router.push('/videos');
+        router.push('/dashboard');
       }
     } else {
       // Redirect to '/' only if not already there and no token found
