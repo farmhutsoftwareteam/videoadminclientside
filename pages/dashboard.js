@@ -55,8 +55,8 @@ export function Dashboard() {
         return <Shows />;
       case "categories":
         return <Categories />;
-      case "settings":
-        return <Settings />;
+      // case "settings":
+      //   return <Settings />;
       default:
         return <Home />;
     }
@@ -114,12 +114,12 @@ export function Dashboard() {
                 onClick={() => setActiveSection("categories")}
                 isActive={activeSection === "categories"}
               />
-              <NavigationItem
+              {/* <NavigationItem
                 icon={SettingsIcon}
                 label="Settings"
                 onClick={() => setActiveSection("settings")}
                 isActive={activeSection === "settings"}
-              />
+              /> */}
             </nav>
           </div>
           <div className="mt-auto p-4">
