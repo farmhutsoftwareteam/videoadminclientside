@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { createShow } from '../functions/createShow'; // Ensure this path is correct
-import { getCategories } from '../functions/getCategories'; // Ensure this path is correct
+import { getCategories } from '@/functions/getCategories'; // Ensure this path is correct
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
