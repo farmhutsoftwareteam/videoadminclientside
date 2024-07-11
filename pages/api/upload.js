@@ -20,10 +20,13 @@ const handler = async (req, res) => {
 
   upload.single('file')(req, res, async (err) => {
     if (err) {
-      console.error(err);
+      console.error('File upload error:', err);
       res.status(500).json({ error: 'File upload error' });
       return;
     }
+
+    const file = req.file;
+    console.log('Uploaded file:', file);
 
     const blobServiceClient = new BlobServiceClient(
       `https://${process.env.AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net?${process.env.AZURE_STORAGE_SAS_TOKEN}`
@@ -33,18 +36,18 @@ const handler = async (req, res) => {
     const containerClient2 = blobServiceClient.getContainerClient(process.env.AZURE_STORAGE_CONTAINER_NAME2);
     const container = req.body.container === '2' ? containerClient2 : containerClient1;
 
-    const blobName = req.file.filename;
+    const blobName = file.filename;
     const blockBlobClient = container.getBlockBlobClient(blobName);
 
     try {
-      await blockBlobClient.uploadFile(req.file.path);
-      fs.unlinkSync(path.resolve(req.file.path)); // Delete file from server after upload
+      await blockBlobClient.uploadFile(file.path);
+      fs.unlinkSync(path.resolve(file.path)); // Delete file from server after upload
 
       const fileURL = blockBlobClient.url; // Get the file URL
       res.status(200).json({ message: 'File uploaded successfully', url: fileURL });
     } catch (uploadError) {
-      console.error(uploadError);
-      res.status(500).json({ error: 'Error uploading file' });
+      console.error('Error uploading file to Azure:', uploadError);
+      res.status(500).json({ error: 'Error uploading file to Azure', details: uploadError.message });
     }
   });
 };
