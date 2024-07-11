@@ -39,12 +39,6 @@ const Sidebar = () => {
             {isOpen && <span className="hidden md:inline">Categories</span>}
           </a>
         </Link>
-        <Link legacyBehavior href="/settings">
-          <a className="py-4 px-6 flex items-center hover:bg-gray-600">
-            <Settings className="mr-2" size={20} aria-hidden="true" />
-            {isOpen && <span className="hidden md:inline">Settings</span>}
-          </a>
-        </Link>
       </div>
     </div>
   );
