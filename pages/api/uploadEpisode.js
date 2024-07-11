@@ -1,5 +1,5 @@
-import { uploadToAzure } from '../../lib/uploadToAzure';
-import { createEpisode } from '../../lib/createEpisode';
+import { uploadToAzure } from '@/functions/uploadToAzure';
+import { createEpisode } from '@/functions/createEpisode';
 import formidable from 'formidable';
 
 export const config = {
