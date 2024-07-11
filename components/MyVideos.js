@@ -178,13 +178,6 @@ export default function MyVideos() {
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
       <section className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">My Videos</h2>
-          <Button size="sm" variant="outline" onClick={() => window.location.href = '/upload'}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Add Video
-          </Button>
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-6">
           {renderVideoCards()}
         </div>
