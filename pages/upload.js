@@ -4,7 +4,6 @@ import { getShows } from "../functions/getShows";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { uploadToAzure } from "../functions/uploadToAzure";
 import { createEpisode } from "../functions/createEpisode";
 import Link from "next/link";
 
@@ -24,22 +23,47 @@ export default function UploadEpisode() {
 
   useEffect(() => {
     const fetchShowOptions = async () => {
-      const shows = await getShows();
-      setShowOptions(shows);
+      try {
+        const shows = await getShows();
+        setShowOptions(shows);
+      } catch (error) {
+        console.error("Error fetching shows:", error);
+      }
     };
     fetchShowOptions();
   }, []);
+
+  const handleFileUpload = async (file, container) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('container', container);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      return result.url; // Get the URL from the response
+    } else {
+      throw new Error(result.error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Upload files to Azure
-      const thumbnailURL = await uploadToAzure(thumbnailFile, "thumbnails");
-      const videoURL = await uploadToAzure(videoFile, "videos");
+      console.log("Uploading thumbnail...");
+      const thumbnailURL = await handleFileUpload(thumbnailFile, "1");
+      console.log("Thumbnail uploaded:", thumbnailURL);
 
-      // Prepare episode details
+      console.log("Uploading video...");
+      const videoURL = await handleFileUpload(videoFile, "2");
+      console.log("Video uploaded:", videoURL);
+
       const episodeDetails = {
         title,
         description,
@@ -51,12 +75,13 @@ export default function UploadEpisode() {
         isFree: monetization === "free",
       };
 
-      // Send episode details to Supabase
+      console.log("Creating episode with details:", episodeDetails);
       await createEpisode(episodeDetails);
+
       alert('Upload successful!');
       setTimeout(() => {
         router.push(`/shows/${selectedShowId}`);
-      }, 5000);
+      }, 2000);
     } catch (error) {
       console.error("Error during upload:", error);
       alert('Upload failed. Please try again.');

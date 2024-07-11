@@ -1,4 +1,9 @@
-import supabase from '../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function createEpisode(episodeDetails) {
   const { data, error } = await supabase.from('episodes').insert([
@@ -10,7 +15,7 @@ export async function createEpisode(episodeDetails) {
       thumbnail: episodeDetails.thumbnail,
       video_url: episodeDetails.video_url,
       show: episodeDetails.show,
-      isfree: episodeDetails.isFree,
+      isFree: episodeDetails.isFree,
     },
   ]);
 
