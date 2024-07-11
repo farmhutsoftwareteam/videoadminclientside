@@ -136,16 +136,6 @@ export function Dashboard() {
             <span className="sr-only">Home</span>
           </Link>
           <div className="w-full flex-1">
-            <form>
-              <div className="relative">
-                <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <Input
-                  className="w-full bg-white shadow-none appearance-none pl-8 md:w-2/3 lg:w-1/3 dark:bg-gray-950"
-                  placeholder="Search videos..."
-                  type="search"
-                />
-              </div>
-            </form>
           </div>
           <Button 
             className="hidden lg:inline-flex bg-red-500 text-white" 
@@ -161,7 +151,7 @@ export function Dashboard() {
           >
             Create Show
           </Button>
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="rounded-full border border-gray-200 w-8 h-8 dark:border-gray-800" size="icon" variant="ghost">
                 <img
@@ -186,7 +176,7 @@ export function Dashboard() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </header>
         {renderSection()} {/* Render the active section */}
       </div>

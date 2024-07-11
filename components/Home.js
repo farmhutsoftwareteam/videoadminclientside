@@ -4,15 +4,15 @@ import Link from "next/link";
 import { UsersIcon, LayoutGridIcon, ListIcon, DollarSignIcon } from "@/components/ui/icons";
 import { getUsers } from "@/functions/getUsers";
 import { getShowCount } from "@/functions/getShows";
-import { getSubscribers } from "@/functions/getUsers";
-import { getVideos } from "@/functions/getVideos";
-
+import { getSubscribers } from "@/functions/getSubscribers";
+import { getEpisodes } from "@/functions/getVideos";
+import { getCategories } from "@/functions/getCategories";
 
 const Home = () => {
   const [userCount, setUserCount] = useState(0);
   const [showCount, setShowCount] = useState(0);
   const [categoryCount, setCategoryCount] = useState(0);
-  const [revenue, setRevenue] = useState(0);
+  const [episodeCount, setEpisodeCount] = useState(0);
   const [trendingVideos, setTrendingVideos] = useState([]);
   const [recommendedVideos, setRecommendedVideos] = useState([]);
 
@@ -20,28 +20,24 @@ const Home = () => {
     const fetchData = async () => {
       try {
         console.log("Fetching data...");
-        const [users, shows, categories, revenueData, trending, recommended] = await Promise.all([
+        const [users, shows, categories, episodes] = await Promise.all([
           getUsers(),
           getShowCount(),
-          getSubscribers(),
-          getVideos(),
-          getVideos(),
-          getRecommendedVideos(),
+          getCategories(),
+          getEpisodes(), 
         ]);
 
         console.log('Fetched users:', users);
         console.log('Fetched shows count:', shows);
         console.log('Fetched categories:', categories);
-        console.log('Fetched revenue data:', revenueData);
-        console.log('Fetched trending videos:', trending);
-        console.log('Fetched recommended videos:', recommended);
+        console.log('Fetched episodes:', episodes);
 
         setUserCount(users.length || 0);
         setShowCount(shows || 0);
         setCategoryCount(categories.length || 0);
-        setRevenue(revenueData.length || 0);
-        setTrendingVideos(trending || []);
-        setRecommendedVideos(recommended || []);
+        setEpisodeCount(episodes.length || 0);
+        setTrendingVideos(episodes || []); 
+        setRecommendedVideos(episodes || []); 
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       }
@@ -55,7 +51,7 @@ const Home = () => {
       { label: "Users", value: userCount, icon: UsersIcon },
       { label: "Shows", value: showCount, icon: LayoutGridIcon },
       { label: "Categories", value: categoryCount, icon: ListIcon },
-      { label: "Revenue", value: `$${revenue}`, icon: DollarSignIcon }
+      { label: "Episodes", value: episodeCount, icon: LayoutGridIcon }
     ].map((stat, index) => (
       <Card key={index} className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
         <div className="flex items-center justify-between">
@@ -71,20 +67,18 @@ const Home = () => {
 
   const renderVideoCards = (videos) => {
     return videos.map((video, index) => (
-      <Card key={index}>
+      <Card key={index} className="bg-white dark:bg-gray-900 rounded-lg shadow-md overflow-hidden">
+        <div className="relative w-full pb-56.25%">
         <img
           alt="Video thumbnail"
           className="aspect-video rounded-t-lg object-cover"
-          height="360"
+          height="160"
           src={video.thumbnail}
-          width="640"
+          width="440"
         />
+        </div>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium">{video.title}</h3>
-            <div className="text-sm text-gray-500 dark:text-gray-400">{video.duration}</div>
-          </div>
-          <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">{video.views} views</div>
+          <h3 className="text-md font-medium text-gray-900 dark:text-gray-100">{video.title}</h3>
         </CardContent>
       </Card>
     ));

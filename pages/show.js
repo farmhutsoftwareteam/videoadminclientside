@@ -1,46 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { createShow } from '../functions/createShow'; // Ensure this path is correct
+import { getCategories } from '../functions/getCategories'; // Ensure this path is correct
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-
-// Sample categories for the dropdown
-const categories = [
-  'Education',
-  'Entertainment',
-  'News',
-  'Sports',
-  'Technology',
-];
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
 
 export default function CreateShow() {
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState(categories[0]);
-  const [thumbnail, setThumbnail] = useState('');
+  const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
   const [description, setDescription] = useState('');
   const [isFree, setIsFree] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getCategories();
+      setCategories(data);
+      if (data.length > 0) {
+        setCategory(data[0].id); // Set the first category as default
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const handleFileUpload = async (file, container) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('container', container);
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      return result.url; // Get the URL from the response
+    } else {
+      throw new Error(result.error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const showDetails = {
-      title,
-      category,
-      thumbnail,
-      description,
-      isFree,
-    };
-
     try {
+      console.log("Uploading thumbnail...");
+      const thumbnailURL = await handleFileUpload(thumbnailFile, "1");
+      console.log("Thumbnail uploaded:", thumbnailURL);
+
+      const showDetails = {
+        title,
+        category,
+        thumbnail: thumbnailURL,
+        description,
+        isFree,
+      };
+
       const response = await createShow(showDetails);
       console.log('Show created successfully:', response);
       alert('Show created successfully!');
       
-      router.push(`/shows`);
+      router.push(`/show`);
     } catch (error) {
       console.error('Show creation failed:', error);
       alert('Show creation failed. Please try again.');
@@ -52,6 +80,13 @@ export default function CreateShow() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 dark:bg-gray-950 p-4">
       <div className="w-full max-w-2xl bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg">
+        <button
+          className="mb-4 text-gray-700 dark:text-gray-300 flex items-center"
+          onClick={() => router.push('/')}
+        >
+          <ChevronLeft className="mr-2" />
+          Back to Home
+        </button>
         <h2 className="text-3xl font-bold text-red-600 dark:text-red-500 mb-6 text-center">Create a New Show</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -79,24 +114,23 @@ export default function CreateShow() {
               className="w-full bg-white border border-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:text-white rounded-lg p-2"
               required
             >
-              {categories.map((cat, index) => (
-                <option key={index} value={cat}>{cat}</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
           </div>
           <div>
             <label htmlFor="thumbnail" className="block text-sm font-bold text-gray-700 dark:text-gray-100 mb-2">
-              Thumbnail URL
+              Thumbnail File
             </label>
             <Input
-              type="text"
+              type="file"
               id="thumbnail"
-              value={thumbnail}
-              onChange={(e) => setThumbnail(e.target.value)}
+              onChange={(e) => setThumbnailFile(e.target.files[0])}
               className="w-full"
-              placeholder="Enter the URL of the thumbnail"
               required
             />
+            <p className="text-sm text-gray-500 mt-1">Upload a valid image file.</p>
           </div>
           <div>
             <label htmlFor="description" className="block text-sm font-bold text-gray-700 dark:text-gray-100 mb-2">
