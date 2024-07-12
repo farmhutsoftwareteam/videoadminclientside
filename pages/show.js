@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { createShow } from '../functions/createShow'; // Ensure this path is correct
-import { getCategories } from '@/functions/getCategories'; // Ensure this path is correct
+import { getCategories } from '../functions/getCategories'; // Ensure this path is correct
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
+import axios from 'axios';
 
 export default function CreateShow() {
   const [title, setTitle] = useState('');
@@ -34,16 +35,16 @@ export default function CreateShow() {
     formData.append('file', file);
     formData.append('container', container);
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const result = await response.json();
-    if (response.ok) {
-      return result.url; // Get the URL from the response
-    } else {
-      throw new Error(result.error);
+    try {
+      const response = await axios.post('http://localhost:8080/api/videos/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data.url;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw new Error('File upload failed');
     }
   };
 

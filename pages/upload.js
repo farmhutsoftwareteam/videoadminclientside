@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createEpisode } from "../functions/createEpisode";
 import Link from "next/link";
 import { ChevronLeft } from 'lucide-react';
+import axios from 'axios';
 
 export default function UploadEpisode() {
   const [title, setTitle] = useState("");
@@ -33,22 +34,39 @@ export default function UploadEpisode() {
     };
     fetchShowOptions();
   }, []);
-
+  const handleThumbnailFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && !file.type.startsWith('image/')) {
+      alert('Please upload a valid image file for the thumbnail.');
+      return;
+    }
+    setThumbnailFile(file);
+  };
+  
+  const handleVideoFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && !file.type.startsWith('video/')) {
+      alert('Please upload a valid video file.');
+      return;
+    }
+    setVideoFile(file);
+  };
+  
   const handleFileUpload = async (file, container) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('container', container);
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    const result = await response.json();
-    if (response.ok) {
-      return result.url; // Get the URL from the response
-    } else {
-      throw new Error(result.error);
+    try {
+      const response = await axios.post('http://localhost:8080/api/videos/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data.url;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw new Error('File upload failed');
     }
   };
 
@@ -219,7 +237,8 @@ export default function UploadEpisode() {
             <Input
               type="file"
               id="thumbnailFile"
-              onChange={(e) => setThumbnailFile(e.target.files[0])}
+              accept="image/*"
+              onChange={handleThumbnailFileChange}
               required
             />
             <p className="text-sm text-gray-500 mt-1">Upload a valid image file.</p>
@@ -231,7 +250,8 @@ export default function UploadEpisode() {
             <Input
               type="file"
               id="videoFile"
-              onChange={(e) => setVideoFile(e.target.files[0])}
+              accept="video/*"
+              onChange={handleVideoFileChange}
               required
             />
             <p className="text-sm text-gray-500 mt-1">Upload a valid video file.</p>
@@ -247,4 +267,4 @@ export default function UploadEpisode() {
       </div>
     </div>
   );
-}
+};  
