@@ -58,18 +58,19 @@ export default function UploadEpisode() {
     formData.append('container', container);
 
     try {
-      const response = await axios.post('http://localhost:8080/api/videos/upload', formData, {
+      console.log('Uploading file to server...');
+      const response = await axios.post('https://hstvvideoapp.azurewebsites.net/api/videos/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
+      console.log('File uploaded:', response.data.url);
       return response.data.url;
     } catch (error) {
       console.error('Error uploading file:', error);
       throw new Error('File upload failed');
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);

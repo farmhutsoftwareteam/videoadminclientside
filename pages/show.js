@@ -38,7 +38,7 @@ export default function CreateShow() {
 
     try {
       console.log('Uploading file to server...');
-      const response = await axios.post('http://localhost:8080/api/videos/upload', formData, {
+      const response = await axios.post('https://hstvvideoapp.azurewebsites.net/api/videos/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
