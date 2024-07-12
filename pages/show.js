@@ -22,6 +22,7 @@ export default function CreateShow() {
   useEffect(() => {
     const fetchCategories = async () => {
       const data = await getCategories();
+      console.log('Categories fetched:', data);
       setCategories(data);
       if (data.length > 0) {
         setCategory(data[0].id); // Set the first category as default
@@ -36,11 +37,13 @@ export default function CreateShow() {
     formData.append('container', container);
 
     try {
+      console.log('Uploading file to server...');
       const response = await axios.post('http://localhost:8080/api/videos/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
+      console.log('File uploaded:', response.data.url);
       return response.data.url;
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -65,10 +68,11 @@ export default function CreateShow() {
         isFree,
       };
 
+      console.log("Creating show with details:", showDetails);
       const response = await createShow(showDetails);
       console.log('Show created successfully:', response);
       alert('Show created successfully!');
-      
+
       router.push(`/show`);
     } catch (error) {
       console.error('Show creation failed:', error);

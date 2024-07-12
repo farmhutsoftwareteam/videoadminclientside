@@ -98,9 +98,7 @@ export default function UploadEpisode() {
       await createEpisode(episodeDetails);
 
       alert('Upload successful!');
-      setTimeout(() => {
-        router.push(`/show`);
-      }, 2000);
+      router.push(`/show`);
     } catch (error) {
       console.error("Error during upload:", error);
       alert('Upload failed. Please try again.');
