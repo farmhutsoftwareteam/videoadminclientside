@@ -99,7 +99,7 @@ export default function UploadEpisode() {
 
       alert('Upload successful!');
       setTimeout(() => {
-        router.push(`/shows/${selectedShowId}`);
+        router.push(`/show`);
       }, 2000);
     } catch (error) {
       console.error("Error during upload:", error);
@@ -195,7 +195,7 @@ export default function UploadEpisode() {
             />
             <datalist id="show-options" className="max-h-40 overflow-y-auto">
               {filteredShowOptions.length > 0 ? (
-                filteredShowOptions.slice(0, 10).map((option, index) => (
+                filteredShowOptions.slice(0, 100).map((option, index) => (
                   <option key={index} value={option.title} />
                 ))
               ) : (
