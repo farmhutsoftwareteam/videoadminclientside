@@ -18,7 +18,7 @@ export default function Signin() {
     setError("");
     console.log('------starting to log in --------', userName);
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL_SERVER}api/users/login`;
+      const apiUrl = "https://hstvserver.azurewebsites.net/api/users/login";
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
