@@ -1,32 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getCategories, updateCategory, deleteCategory } from '../functions/getCategories';
-import {createCategory } from '../functions/createCategory'; // Ensure this path is correct
+import { getPlans, updatePlan, deletePlan } from '../functions/getPlans';
+import { createPlan } from '../functions/createPlan'; // Ensure this path is correct
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import supabase from '../lib/supabase';
 import { Button } from "@/components/ui/button"; // Assuming these components are part of your design system
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog"; // Assuming these components are part of your design system
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const Categories = () => {
-  const [categories, setCategories] = useState([]);
+const Plans = () => {
+  const [plans, setPlans] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [editCategory, setEditCategory] = useState(null);
-  const [newCategory, setNewCategory] = useState({ name: '', description: '' });
+  const [editPlan, setEditPlan] = useState(null);
+  const [formData, setFormData] = useState({
+    plan_name: '',
+    plan_amount: ''
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [planToDelete, setPlanToDelete] = useState(null);
   const [confirmText, setConfirmText] = useState('');
-  const categoriesPerPage = 7;
+  const plansPerPage = 7;
 
   useEffect(() => {
     const fetchData = async () => {
-      const categoriesData = await getCategories();
-      setCategories(categoriesData);
+      const plansData = await getPlans();
+      setPlans(plansData);
     };
     fetchData();
   }, []);
@@ -36,51 +40,47 @@ const Categories = () => {
     setCurrentPage(1); // Reset to the first page on search
   };
 
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPlans = plans.filter(plan =>
+    plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Pagination logic
-  const indexOfLastCategory = currentPage * categoriesPerPage;
-  const indexOfFirstCategory = indexOfLastCategory - categoriesPerPage;
-  const currentCategories = filteredCategories.slice(indexOfFirstCategory, indexOfLastCategory);
-  const totalPages = Math.ceil(filteredCategories.length / categoriesPerPage);
+  const indexOfLastPlan = currentPage * plansPerPage;
+  const indexOfFirstPlan = indexOfLastPlan - plansPerPage;
+  const currentPlans = filteredPlans.slice(indexOfFirstPlan, indexOfLastPlan);
+  const totalPages = Math.ceil(filteredPlans.length / plansPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewCategory({
-      ...newCategory,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleCreatePlan = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const { plan_name, plan_amount } = formData;
+    const { data, error } = await supabase.from('plans').insert([{ plan_name, plan_amount }]);
+
+    if (error) {
+      console.error('Error creating plan:', error);
+      toast.error('Failed to create plan');
+    } else {
+      toast.success('Plan created successfully!');
+      setFormData({ plan_name: '', plan_amount: '' }); // Clear the form fields
+      const updatedPlans = await getPlans(); // Refresh the list of plans
+      setPlans(updatedPlans);
+    }
+    setLoading(false);
   };
 
   const handleEditInputChange = (e) => {
     const { name, value } = e.target;
-    setEditCategory({
-      ...editCategory,
+    setEditPlan({
+      ...editPlan,
       [name]: value,
     });
-  };
-
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      await createCategory(newCategory);
-      const updatedCategories = await getCategories();
-      setCategories(updatedCategories);
-      setNewCategory({ name: '', description: '' });
-      toast.success('Category created successfully!');
-    } catch (error) {
-      setError('Failed to create category');
-      console.error("Error creating category:", error);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleUpdate = async (e) => {
@@ -89,14 +89,14 @@ const Categories = () => {
     setError(null);
 
     try {
-      await updateCategory(editCategory.id, editCategory);
-      const updatedCategories = await getCategories();
-      setCategories(updatedCategories);
-      setEditCategory(null);
-      toast.success('Category updated successfully!');
+      await updatePlan(editPlan.id, editPlan);
+      const updatedPlans = await getPlans();
+      setPlans(updatedPlans);
+      setEditPlan(null);
+      toast.success('Plan updated successfully!');
     } catch (error) {
-      setError('Failed to update category');
-      console.error("Error updating category:", error);
+      setError('Failed to update plan');
+      console.error("Error updating plan:", error);
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ const Categories = () => {
 
   const handleDelete = async (e) => {
     e.preventDefault();
-    if (confirmText !== 'HEART AND SOUL BROADCASTING') {
+    if (confirmText !== 'CONFIRM DELETE') {
       setError('Confirmation text does not match');
       return;
     }
@@ -112,26 +112,26 @@ const Categories = () => {
     setError(null);
 
     try {
-      await deleteCategory(categoryToDelete.id);
-      const updatedCategories = await getCategories();
-      setCategories(updatedCategories);
-      toast.success('Category deleted successfully!');
+      await deletePlan(planToDelete.id);
+      const updatedPlans = await getPlans();
+      setPlans(updatedPlans);
+      toast.success('Plan deleted successfully!');
       setDeleteDialogOpen(false); // Close the dialog
     } catch (error) {
-      setError('Failed to delete category');
-      console.error(`Error deleting category with ID ${categoryToDelete.id}:`, error);
+      setError('Failed to delete plan');
+      console.error(`Error deleting plan with ID ${planToDelete.id}:`, error);
     } finally {
       setLoading(false);
       setConfirmText('');
     }
   };
 
-  const openEditDialog = (category) => {
-    setEditCategory(category);
+  const openEditDialog = (plan) => {
+    setEditPlan(plan);
   };
 
-  const openDeleteDialog = (category) => {
-    setCategoryToDelete(category);
+  const openDeleteDialog = (plan) => {
+    setPlanToDelete(plan);
     setDeleteDialogOpen(true);
   };
 
@@ -140,43 +140,43 @@ const Categories = () => {
       <ToastContainer />
       <div className="bg-white dark:bg-gray-900 rounded-lg p-6 shadow-lg">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-bold text-red-600 dark:text-red-500">Categories</h2>
+          <h2 className="text-3xl font-bold text-red-600 dark:text-red-500">Plans</h2>
           <Dialog>
             <DialogTrigger>
-              <Button className="p-2 bg-red-500 text-white rounded">Create Category</Button>
+              <Button className="p-2 bg-red-500 text-white rounded">Create Plan</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Category</DialogTitle>
+                <DialogTitle>Create Plan</DialogTitle>
                 <DialogDescription>
-                  Fill in the details below to create a new category.
+                  Fill in the details below to create a new plan.
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleCreate}>
+              <form onSubmit={handleCreatePlan}>
                 <div className="mb-4">
                   <Input
                     type="text"
-                    name="name"
-                    value={newCategory.name}
+                    name="plan_name"
+                    value={formData.plan_name}
                     onChange={handleInputChange}
-                    placeholder="Category Name"
+                    placeholder="Plan Name"
                     required
                   />
                 </div>
                 <div className="mb-4">
                   <Input
-                    type="text"
-                    name="description"
-                    value={newCategory.description}
+                    type="number"
+                    name="plan_amount"
+                    value={formData.plan_amount}
                     onChange={handleInputChange}
-                    placeholder="Category Description"
+                    placeholder="Plan Amount"
                     required
                   />
                 </div>
                 {error && <div className="text-red-500 mb-4">{error}</div>}
                 <DialogFooter>
                   <Button type="submit" disabled={loading}>
-                    {loading ? 'Creating...' : 'Create Category'}
+                    {loading ? 'Creating...' : 'Create Plan'}
                   </Button>
                   <DialogClose>
                     <Button type="button">Cancel</Button>
@@ -189,7 +189,7 @@ const Categories = () => {
         <Input
           type="text"
           className="mb-4 p-2 w-full bg-gray-100 dark:bg-gray-800 text-black dark:text-white rounded-lg border border-gray-300 dark:border-gray-600"
-          placeholder="Search by category name..."
+          placeholder="Search by plan name..."
           value={searchQuery}
           onChange={handleSearch}
         />
@@ -202,57 +202,57 @@ const Categories = () => {
             </tr>
           </thead>
           <tbody>
-            {currentCategories.map(category => (
-              <tr key={category.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+            {currentPlans.map(plan => (
+              <tr key={plan.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="py-2 px-4 text-black dark:text-white border-b border-gray-300 dark:border-gray-600">
-                  <Link href={`/categories/${category.id}`} className="hover:underline">
-                    {category.name}
+                  <Link href={`/plans/${plan.id}`} className="hover:underline">
+                    {plan.plan_name}
                   </Link>
                 </td>
                 <td className="py-2 px-4 text-black dark:text-white border-b border-gray-300 dark:border-gray-600">
-                  {category.description}
+                  {plan.plan_amount}
                 </td>
                 <td className="py-2 px-4 text-black dark:text-white border-b border-gray-300 dark:border-gray-600">
                   <div className="flex space-x-2">
                     <Dialog>
                       <DialogTrigger>
-                        <Button onClick={() => openEditDialog(category)} className="p-2 bg-white text-red-600 hover:bg-red-600 hover:text-white rounded">Edit</Button>
+                        <Button onClick={() => openEditDialog(plan)} className="p-2 bg-white text-red-600 hover:bg-red-600 hover:text-white rounded">Edit</Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>Edit Category</DialogTitle>
+                          <DialogTitle>Edit Plan</DialogTitle>
                           <DialogDescription>
-                            Modify the details below to update the category.
+                            Modify the details below to update the plan.
                           </DialogDescription>
                         </DialogHeader>
                         <form onSubmit={handleUpdate}>
                           <div className="mb-4">
                             <Input
                               type="text"
-                              name="name"
-                              value={editCategory ? editCategory.name : ''}
+                              name="plan_name"
+                              value={editPlan ? editPlan.plan_name : ''}
                               onChange={handleEditInputChange}
-                              placeholder="Category Name"
+                              placeholder="Plan Name"
                               required
                             />
                           </div>
                           <div className="mb-4">
                             <Input
-                              type="text"
-                              name="description"
-                              value={editCategory ? editCategory.description : ''}
+                              type="number"
+                              name="plan_amount"
+                              value={editPlan ? editPlan.plan_amount : ''}
                               onChange={handleEditInputChange}
-                              placeholder="Category Description"
+                              placeholder="Plan Amount"
                               required
                             />
                           </div>
                           {error && <div className="text-red-500 mb-4">{error}</div>}
                           <DialogFooter>
-                            <Button className="p-2 bg-red-600 text-white hover:bg-white hover:text-red-600 rounded" type="submit" disabled={loading}>
-                              {loading ? 'Updating...' : 'Update Category'}
+                            <Button type="submit" disabled={loading} className="p-2 bg-red-600 text-white hover:bg-white hover:text-red-600 rounded">
+                              {loading ? 'Updating...' : 'Update Plan'}
                             </Button>
                             <DialogClose>
-                              <Button type="button">Cancel</Button>
+                              <Button type="button" className="p-2 bg-red-600 text-white hover:bg-white hover:text-red-600 rounded">Cancel</Button>
                             </DialogClose>
                           </DialogFooter>
                         </form>
@@ -260,13 +260,13 @@ const Categories = () => {
                     </Dialog>
                     <AlertDialog>
                       <AlertDialogTrigger>
-                        <Button onClick={() => openDeleteDialog(category)} className="p-2 bg-red-600 text-white hover:bg-white hover:text-red-600 rounded">Delete</Button>
+                        <Button onClick={() => openDeleteDialog(plan)} className="p-2 bg-red-600 text-white hover:bg-white hover:text-red-600 rounded">Delete</Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete this category? Please type <strong>HEART AND SOUL BROADCASTING</strong> to confirm.
+                            Are you sure you want to delete this plan? Please type <strong>CONFIRM DELETE</strong> to confirm.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <form onSubmit={handleDelete}>
@@ -282,11 +282,11 @@ const Categories = () => {
                           </div>
                           {error && <div className="text-red-500 mb-4">{error}</div>}
                           <AlertDialogFooter>
-                            <Button  type="submit" disabled={loading || confirmText !== 'HEART AND SOUL BROADCASTING'}>
-                              {loading ? 'Deleting...' : 'Delete'} 
+                            <Button type="submit" disabled={loading || confirmText !== 'CONFIRM DELETE'}>
+                              {loading ? 'Deleting...' : 'Delete'}
                             </Button>
                             <AlertDialogTrigger>
-                              <Button type="button" className="p-2 bg-red-600 text-white hover:bg-white hover:text-red-600 rounded">Cancel</Button>
+                              <Button type="button">Cancel</Button>
                             </AlertDialogTrigger>
                           </AlertDialogFooter>
                         </form>
@@ -324,4 +324,4 @@ const Categories = () => {
   );
 };
 
-export default Categories;
+export default Plans;
