@@ -27,6 +27,7 @@ export default function UploadEpisode() {
     const fetchShowOptions = async () => {
       try {
         const shows = await getShows();
+        console.log('Fetched shows:', shows); // Log fetched shows
         setShowOptions(shows);
       } catch (error) {
         console.error("Error fetching shows:", error);
@@ -34,6 +35,7 @@ export default function UploadEpisode() {
     };
     fetchShowOptions();
   }, []);
+
   const handleThumbnailFileChange = (e) => {
     const file = e.target.files[0];
     if (file && !file.type.startsWith('image/')) {
@@ -42,7 +44,7 @@ export default function UploadEpisode() {
     }
     setThumbnailFile(file);
   };
-  
+
   const handleVideoFileChange = (e) => {
     const file = e.target.files[0];
     if (file && !file.type.startsWith('video/')) {
@@ -51,38 +53,32 @@ export default function UploadEpisode() {
     }
     setVideoFile(file);
   };
-  
+
   const handleFileUpload = async (file, container) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('container', container);
 
     try {
-      console.log('Uploading file to server...');
       const response = await axios.post('https://hstvserver.azurewebsites.net/api/videos/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      console.log('File uploaded:', response.data.url);
       return response.data.url;
     } catch (error) {
       console.error('Error uploading file:', error);
       throw new Error('File upload failed');
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      console.log("Uploading thumbnail...");
       const thumbnailURL = await handleFileUpload(thumbnailFile, "1");
-      console.log("Thumbnail uploaded:", thumbnailURL);
-
-      console.log("Uploading video...");
       const videoURL = await handleFileUpload(videoFile, "2");
-      console.log("Video uploaded:", videoURL);
 
       const episodeDetails = {
         title,
@@ -95,7 +91,6 @@ export default function UploadEpisode() {
         isFree: monetization === "free",
       };
 
-      console.log("Creating episode with details:", episodeDetails);
       await createEpisode(episodeDetails);
 
       alert('Upload successful!');
@@ -266,4 +261,4 @@ export default function UploadEpisode() {
       </div>
     </div>
   );
-};  
+};

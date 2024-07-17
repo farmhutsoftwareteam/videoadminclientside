@@ -31,6 +31,9 @@ import Subscriptions from "@/components/Subscriptions";
 import Shows from "@/components/Shows";
 import Categories from "@/components/categories";
 import Settings from "@/components/Settings";
+import Plans from "@/components/plans";
+import { DollarSign } from "lucide-react";
+import NewPlan from "./new-plan";
 
 export function Dashboard() {
   const [activeSection, setActiveSection] = useState("home");
@@ -55,6 +58,8 @@ export function Dashboard() {
         return <Shows />;
       case "categories":
         return <Categories />;
+      case "plans":
+        return <Plans />;
       // case "settings":
       //   return <Settings />;
       default:
@@ -113,6 +118,12 @@ export function Dashboard() {
                 label="Categories"
                 onClick={() => setActiveSection("categories")}
                 isActive={activeSection === "categories"}
+              />
+                <NavigationItem
+                icon={DollarSign}
+                label="Subscription Plans"
+                onClick={() => setActiveSection("plans")}
+                isActive={activeSection === "plans"}
               />
               {/* <NavigationItem
                 icon={SettingsIcon}
