@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/router';
-import { getShows } from "../functions/getShows";
+import { getShows, getEpisodesByShowId } from "../functions/getVideos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createEpisode } from "../functions/createEpisode";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { ChevronLeft } from 'lucide-react';
 import axios from 'axios';
@@ -21,13 +23,17 @@ export default function UploadEpisode() {
   const [selectedShowId, setSelectedShowId] = useState(null);
   const [monetization, setMonetization] = useState("free");
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
+  const [cancelTokenSource, setCancelTokenSource] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchShowOptions = async () => {
       try {
         const shows = await getShows();
-        console.log('Fetched shows:', shows); // Log fetched shows
+        console.log('Fetched shows:', shows);
         setShowOptions(shows);
       } catch (error) {
         console.error("Error fetching shows:", error);
@@ -39,7 +45,8 @@ export default function UploadEpisode() {
   const handleThumbnailFileChange = (e) => {
     const file = e.target.files[0];
     if (file && !file.type.startsWith('image/')) {
-      alert('Please upload a valid image file for the thumbnail.');
+      setAlertMessage('Please upload a valid image file for the thumbnail.');
+      setShowAlert(true);
       return;
     }
     setThumbnailFile(file);
@@ -48,7 +55,8 @@ export default function UploadEpisode() {
   const handleVideoFileChange = (e) => {
     const file = e.target.files[0];
     if (file && !file.type.startsWith('video/')) {
-      alert('Please upload a valid video file.');
+      setAlertMessage('Please upload a valid video file.');
+      setShowAlert(true);
       return;
     }
     setVideoFile(file);
@@ -59,16 +67,40 @@ export default function UploadEpisode() {
     formData.append('file', file);
     formData.append('container', container);
 
+    const source = axios.CancelToken.source();
+    setCancelTokenSource(source);
+
     try {
       const response = await axios.post('https://hstvserver.azurewebsites.net/api/videos/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
+        },
+        cancelToken: source.token,
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
         }
       });
       return response.data.url;
     } catch (error) {
-      console.error('Error uploading file:', error);
+      if (axios.isCancel(error)) {
+        console.log('Upload canceled');
+      } else {
+        console.error('Error uploading file:', error);
+        setAlertMessage('File upload failed. Please try again.');
+        setShowAlert(true);
+      }
       throw new Error('File upload failed');
+    }
+  };
+
+  const checkEpisodeExists = async (showId, season, episode) => {
+    try {
+      const episodes = await getEpisodesByShowId(showId);
+      return episodes.some(ep => ep.seasonnumber === season && ep.episodenumber === episode);
+    } catch (error) {
+      console.error('Error checking if episode exists:', error);
+      return false;
     }
   };
 
@@ -77,6 +109,14 @@ export default function UploadEpisode() {
     setIsLoading(true);
 
     try {
+      const existingEpisode = await checkEpisodeExists(selectedShowId, seasonNumber, episodeNumber);
+      if (existingEpisode) {
+        setAlertMessage(`Episode ${episodeNumber} of Season ${seasonNumber} already exists in this show.`);
+        setShowAlert(true);
+        setIsLoading(false);
+        return;
+      }
+
       const thumbnailURL = await handleFileUpload(thumbnailFile, "1");
       const videoURL = await handleFileUpload(videoFile, "2");
 
@@ -94,12 +134,22 @@ export default function UploadEpisode() {
       await createEpisode(episodeDetails);
 
       alert('Upload successful!');
-      router.push(`/show`);
+      router.push(`/upload`);
     } catch (error) {
       console.error("Error during upload:", error);
-      alert('Upload failed. Please try again.');
+      setAlertMessage('Upload failed. Please try again.');
+      setShowAlert(true);
     } finally {
       setIsLoading(false);
+      setUploadProgress(0); // Reset progress after upload is complete
+    }
+  };
+
+  const handleCancelUpload = () => {
+    if (cancelTokenSource) {
+      cancelTokenSource.cancel("Upload canceled by user");
+      setIsLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -128,6 +178,12 @@ export default function UploadEpisode() {
           <ChevronLeft className="mr-2 text-red-500" />
           Back to Home
         </button>
+        {showAlert && (
+          <Alert variant="destructive" onClose={() => setShowAlert(false)} className="mb-4">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{alertMessage}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="title" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
@@ -235,7 +291,7 @@ export default function UploadEpisode() {
               onChange={handleThumbnailFileChange}
               required
             />
-            <p className="text-sm text-gray-500 mt-1">Upload a valid image file.</p>
+            {/* <p className="text-sm text-gray-500 mt-1">Upload a valid image file.</p> */}
           </div>
           <div className="mb-4">
             <label htmlFor="videoFile" className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
@@ -248,15 +304,36 @@ export default function UploadEpisode() {
               onChange={handleVideoFileChange}
               required
             />
-            <p className="text-sm text-gray-500 mt-1">Upload a valid video file.</p>
+            {/* <p className="text-sm text-gray-500 mt-1">Upload a valid video file.</p> */}
           </div>
-          <Button
-            type="submit"
-            className="bg-red-500 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Uploading...' : 'Upload Episode'}
-          </Button>
+          <div className="flex justify-between">
+            <Button
+              type="submit"
+              className="bg-red-500 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Uploading...' : 'Upload Episode'}
+            </Button>
+            {isLoading && (
+              <Button
+                type="button"
+                className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onClick={handleCancelUpload}
+              >
+                Cancel Upload
+              </Button>
+            )}
+          </div>
+          {isLoading && (
+            <div className="mt-4">
+              <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">{uploadProgress}%</div>
+              <Progress 
+                value={uploadProgress} 
+                className="w-full h-2 rounded-full bg-gray-200"
+                progressClassName="bg-red-500"
+              />
+            </div>
+          )}
         </form>
       </div>
     </div>

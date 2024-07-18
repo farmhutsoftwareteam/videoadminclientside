@@ -153,14 +153,14 @@ export function Dashboard() {
             variant="outline" 
             onClick={() => router.push('/upload')}
           >
-            Create Video
+            Create New Episode
           </Button>
           <Button 
             className="hidden lg:inline-flex text-red-500" 
             variant="outline" 
             onClick={() => router.push('/show')}
           >
-            Create Show
+            Create New Show
           </Button>
           {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
