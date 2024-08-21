@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from 'next/router';
-import { getShows, getEpisodesByShowId } from "../functions/getVideos";
+import { getShows, getEpisodesByShowId } from "../functions/getShows";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 import { ChevronLeft } from 'lucide-react';
-import axios from 'axios';
+import { uploadFileToBlob } from '../utils/fileUpload'
 
 export default function UploadEpisode() {
   const [title, setTitle] = useState("");
@@ -52,6 +52,13 @@ export default function UploadEpisode() {
     setThumbnailFile(file);
   };
 
+  const initUpdateProgressBar = (container, fileSize) => (progress) => {
+    // Only update progress bar for video file
+    if(container === '2') {
+        setUploadProgress(((progress.loadedBytes / fileSize) * 100).toFixed(0))
+    }
+  }
+
   const handleVideoFileChange = (e) => {
     const file = e.target.files[0];
     if (file && !file.type.startsWith('video/')) {
@@ -62,34 +69,16 @@ export default function UploadEpisode() {
     setVideoFile(file);
   };
 
-  const handleFileUpload = async (file, container) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('container', container);
-
-    const source = axios.CancelToken.source();
-    setCancelTokenSource(source);
-
+  const handleFileUpload = async (file, container, abortController) => {
     try {
-      const response = await axios.post('https://hstvserver.azurewebsites.net/api/videos/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        cancelToken: source.token,
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-        }
-      });
-      return response.data.url;
+        const updateProgressBar = initUpdateProgressBar(container, file.size)
+        const url = await uploadFileToBlob(file, container, abortController, updateProgressBar)
+
+        return url
     } catch (error) {
-      if (axios.isCancel(error)) {
-        console.log('Upload canceled');
-      } else {
-        console.error('Error uploading file:', error);
-        setAlertMessage('File upload failed. Please try again.');
-        setShowAlert(true);
-      }
+      console.error('Error uploading file:', error);
+      setAlertMessage('File upload failed. Please try again.');
+      setShowAlert(true);
       throw new Error('File upload failed');
     }
   };
@@ -117,8 +106,11 @@ export default function UploadEpisode() {
         return;
       }
 
-      const thumbnailURL = await handleFileUpload(thumbnailFile, "1");
-      const videoURL = await handleFileUpload(videoFile, "2");
+      // Gives up the ability to cancel upload to Azure Blob Storage
+      const abortController = new AbortController()
+      setCancelTokenSource(abortController)
+
+      const [thumbnailURL, videoURL] = await Promise.all([handleFileUpload(thumbnailFile, "1", abortController), handleFileUpload(videoFile, "2", abortController)])
 
       const episodeDetails = {
         title,
@@ -147,7 +139,7 @@ export default function UploadEpisode() {
 
   const handleCancelUpload = () => {
     if (cancelTokenSource) {
-      cancelTokenSource.cancel("Upload canceled by user");
+      cancelTokenSource.abort();
       setIsLoading(false);
       setUploadProgress(0);
     }
